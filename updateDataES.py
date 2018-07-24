@@ -3,8 +3,8 @@
 #author: Javier Artiga Garijo (v0.2)
 #date: 16/07/2018 (using helpers.scan to scroll ES)
 #version: 0.2 (based on ts-updater.py)
-#from ElasticSearch, UPDATE DATA of whois, ip, mx records, webs for each domain
-#if the domain has changed.
+# from ElasticSearch, UPDATE DATA of whois, ip, mx records, webs for each domain
+# if the domain has changed.
 #
 #usage: updateDataES.py elasticSearchIndex [-v]
 

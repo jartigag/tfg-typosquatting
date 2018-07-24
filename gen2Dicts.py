@@ -3,7 +3,7 @@
 #author: Javier Artiga Garijo (v0.1)
 #date: 17/07/2018
 #version: 0.1
-#GENerate 2 DICTionaries from a log: fast-dict and slow-dict
+# GENerate 2 DICTionaries from a log: fast-dict and slow-dict
 
 #usage: gen2Dicts.py [-v] logFile outputDictFile (-v mainly to debug, significantly faster without it)
 

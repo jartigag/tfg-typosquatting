@@ -5,7 +5,7 @@
 #version: 0.1 (based con continuum-retrieveData.sh)
 #
 # execute multi-retrieveData continuously
-# usage: bash continuum-multi-retrieveData.sh path/to/dictFile.json
+#usage: bash continuum-multi-retrieveData.sh path/to/dictFile.json
 
 i=1
 file=$(mktemp)

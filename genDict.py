@@ -4,7 +4,7 @@
 #author: Aruna Prem Bianzino (v0.1, typosquattinggeneration.py)
 #date: 03/07/2018
 #version: 0.4 (it accepts arguments)
-#GENerate a DICTionary of DOMAINS from a list of Official Domains and a list of ccTLDs
+# GENerate a DICTionary of DOMAINS from a list of Official Domains and a list of ccTLDs
 
 #usage: genDict.py [-v] tldsJSONFile domainsDirectory outputDictFile
 

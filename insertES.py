@@ -3,7 +3,7 @@
 #author: Javier Artiga Garijo (v0.1)
 #date: 25/06/2018
 #version: 0.1
-#INSERT data from a file into ELASTICSEARCH
+# INSERT data from a file into ELASTICSEARCH
 #
 #usage: insertES.py dataFile.json elasticSearchIndex
 

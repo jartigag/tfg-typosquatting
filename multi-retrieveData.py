@@ -7,9 +7,6 @@
 #
 #recommended execution: /usr/bin/time -o time.txt python3 retrieveData.py dictFile.json outputFile.json >> logFile.log
 
-#TO-DO LIST (18/07/2018)
-#TODO: try-except to control when we are blocked
-
 import argparse
 from datetime import date, timedelta, datetime
 from time import time

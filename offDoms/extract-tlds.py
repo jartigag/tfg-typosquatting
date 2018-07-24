@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-#author: Javier Artiga Garijo
+#author: Javier Artiga Garijo (v0.1)
 #date: 21/06/2018
 #version: 0.1
 # extract ccTLDs from .dat files (which contain official domains)

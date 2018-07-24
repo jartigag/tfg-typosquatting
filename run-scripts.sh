@@ -7,7 +7,7 @@
 # PREVIOUSLY: check duplicates in customers' files (.csv files in 'csv/' path)
 # with offDoms/check_dups.py script and remove them manually
 
-# to change extension from .csv to .dat (results in 'files/DAT/'):
+# to change extension from .csv to .dat (results in 'files/DAT/'), execute:
 #rename 's/\.csv$/\.dat/' *.csv
 
 # extract used tlds

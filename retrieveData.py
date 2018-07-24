@@ -3,15 +3,13 @@
 #author: Javier Artiga Garijo (v0.4)
 #date: 13/07/2018 (some improvements)
 #version: 0.4 (based on ts-updater.py)
-#given a dictionary of domains, RETRIEVE DATA of whois, ip, mx records, webs for each domain
-#and classify it as low/high priority + status info.
-#results of each domain are stored in an array of Domain objects with all their collected info.
+# given a dictionary of domains, RETRIEVE DATA of whois, ip, mx records, webs for each domain
+# and classify it as low/high priority + status info.
+# results of each domain are stored in an array of Domain objects with all their collected info.
 #
 #recommended execution: /usr/bin/time -o time.txt python3 retrieveData.py [-v] dictFile.json outputFile.json >> logFile.log
 
 #TO-DO LIST (18/07/2018)
-#TODO: threads until block
-#TODO: try-except to control when we are blocked
 #FIXME: 2596 status (52,2%) stay as 'resolving'
 
 import argparse

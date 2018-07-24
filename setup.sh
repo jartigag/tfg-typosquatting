@@ -29,7 +29,7 @@ rm -r whois-5.2.17
 rm v5.2.17.tar.gz
 
 ## PYTHON
-# (using python3, commented lines can be left as they are now)
+#(using python3, commented lines can be left as they are now)
 #sudo apt install python-pip
 sudo apt install python3-pip
 #sudo pip install whois==0.7
