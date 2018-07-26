@@ -1,0 +1,262 @@
+0c0
+////
+// notes for myself start with //
+////
+193c175
+< 					raise ValueError('Invalid domain name.')
+---
+> 					raise ValueError('Invalid domain name.' + self.domain) #diff: + self.domain
+211d192
+< 
+278,279d258
+< 			#if not self.__validate_domain(d['domain-name']):
+< 				#p_err("debug: invalid domain %s\n" % d['domain-name'])
+299a279
+> 		#diff: reducido
+301,326c281,306
+< 		'a': [u'à', u'á', u'â', u'ã', u'ä', u'å', u'ɑ', u'а', u'ạ', u'ǎ', u'ă', u'ȧ', u'ӓ'],
+< 		'b': ['d', 'lb', 'ib', u'ʙ', u'Ь', u'b̔', u'ɓ', u'Б'],
+< 		'c': [u'ϲ', u'с', u'ƈ', u'ċ', u'ć', u'ç'],
+< 		'd': ['b', 'cl', 'dl', 'di', u'ԁ', u'ժ', u'ɗ', u'đ'],
+< 		'e': [u'é', u'ê', u'ë', u'ē', u'ĕ', u'ě', u'ė', u'е', u'ẹ', u'ę', u'є', u'ϵ', u'ҽ'],
+< 		'f': [u'Ϝ', u'ƒ', u'Ғ'],
+< 		'g': ['q', u'ɢ', u'ɡ', u'Ԍ', u'Ԍ', u'ġ', u'ğ', u'ց', u'ǵ', u'ģ'],
+< 		'h': ['lh', 'ih', u'һ', u'հ', u'Ꮒ', u'н'],
+< 		'i': ['1', 'l', u'Ꭵ', u'í', u'ï', u'ı', u'ɩ', u'ι', u'ꙇ', u'ǐ', u'ĭ'],
+< 		'j': [u'ј', u'ʝ', u'ϳ', u'ɉ'],
+< 		'k': ['lk', 'ik', 'lc', u'κ', u'ⲕ', u'κ'],
+< 		'l': ['1', 'i', u'ɫ', u'ł'],
+< 		'm': ['n', 'nn', 'rn', 'rr', u'ṃ', u'ᴍ', u'м', u'ɱ'],
+< 		'n': ['m', 'r', u'ń'],
+< 		'o': ['0', u'Ο', u'ο', u'О', u'о', u'Օ', u'ȯ', u'ọ', u'ỏ', u'ơ', u'ó', u'ö', u'ӧ'],
+< 		'p': [u'ρ', u'р', u'ƿ', u'Ϸ', u'Þ'],
+< 		'q': ['g', u'զ', u'ԛ', u'գ', u'ʠ'],
+< 		'r': [u'ʀ', u'Г', u'ᴦ', u'ɼ', u'ɽ'],
+< 		's': [u'Ⴝ', u'Ꮪ', u'ʂ', u'ś', u'ѕ'],
+< 		't': [u'τ', u'т', u'ţ'],
+< 		'u': [u'μ', u'υ', u'Ս', u'ս', u'ц', u'ᴜ', u'ǔ', u'ŭ'],
+< 		'v': [u'ѵ', u'ν', u'v̇'],
+< 		'w': ['vv', u'ѡ', u'ա', u'ԝ'],
+< 		'x': [u'х', u'ҳ', u'ẋ'],
+< 		'y': [u'ʏ', u'γ', u'у', u'Ү', u'ý'],
+< 		'z': [u'ʐ', u'ż', u'ź', u'ʐ', u'ᴢ']
+---
+> 		'a': [u'à', u'á', u'â', u'ã', u'ä', u'å', u'ɑ', u'4', u'а'],
+> 		'b': ['d', 'lb', 'ib', u'ʙ', u'Ь', u'ｂ'],
+> 		'c': [u'ϲ', u'с', u'ⅽ'],
+> 		'd': ['b', 'cl', 'dl', 'di', u'ԁ', u'ժ', u'ⅾ', u'ｄ'],
+> 		'e': [u'é', u'ê', u'ë', u'ē', u'ĕ', u'ė', u'ｅ', u'3', u'е'],
+> 		'f': [u'Ϝ', u'Ｆ', u'ph', u'ｆ'],
+> 		'g': ['q', u'ɢ', u'ɡ', u'Ԍ', u'Ԍ', u'ｇ'],
+> 		'h': ['lh', 'ih', u'һ', u'ｈ'],
+> 		'i': ['1', 'l', u'Ꭵ', u'ⅰ', u'1', u'ｉ'],
+> 		'j': [u'ј', u'ｊ'],
+> 		'k': ['lk', 'ik', 'lc', u'κ', u'ｋ', u'c'],
+> 		'l': ['1', 'i', u'ⅼ', u'ｌ'],
+> 		'm': ['n', 'nn', 'rn', 'rr', u'ⅿ', u'ｍ'],
+> 		'n': ['m', 'r', u'ｎ'],
+> 		'o': ['0', u'Ο', u'ο', u'О', u'о', u'Օ', u'Ｏ', u'ｏ'],
+> 		'p': [u'ρ', u'р', u'ｐ'],
+> 		'q': ['g', u'ｑ'],
+> 		'r': [u'ʀ', u'ｒ'],
+> 		's': [u'Ⴝ', u'Ꮪ', u'Ｓ', u'5', u'ｓ'],
+> 		't': [u'τ', u'ｔ'],
+> 		'u': [u'μ', u'υ', u'Ս', u'Ｕ', u'ｕ', u'v'],
+> 		'v': [u'ｖ', u'ѵ', u'ⅴ', u'u'],
+> 		'w': ['vv', u'ѡ', u'ｗ'],
+> 		'x': [u'ⅹ', u'ｘ'],
+> 		'y': [u'ʏ', u'γ', u'у', u'Ү', u'ｙ'],
+> 		'z': [u'ｚ']
+328a309
+> 		#diff: result en vez de result_1pass,result_2pass
+352c333,334
+< 			result.append(self.domain[:i] + '-' + self.domain[i:])
+---
+// HYPHENATION: consider dots to correctly hyphenate domains
+> 			if self.domain[i] not in ['-', '.'] and self.domain[i-1] not in ['-', '.']:
+> 				result.append(self.domain[:i] + '-' + self.domain[i:])
+463a446,454
+// why?
+> 		#diff: añadidos TLDs y not startswith('www.')
+> 		for toplevdom in ['it', 'es', 'uk', 'net', 'co', 'edu', 'org', 'int', 'se', 'de', 'fr', 'gov', 'mil']:
+> 			self.domains.append({ 'fuzzer': 'TLD', 'domain-name': self.domain + '.' + toplevdom })
+> 
+> 		if not self.domain.startswith('www.'):
+> 			self.domains.append({ 'fuzzer': 'Various', 'domain-name': 'ww' + self.domain + '.' + self.tld })
+> 			self.domains.append({ 'fuzzer': 'Various', 'domain-name': 'www' + self.domain + '.' + self.tld })
+> 			self.domains.append({ 'fuzzer': 'Various', 'domain-name': 'www-' + self.domain + '.' + self.tld })
+> 
+470a462,472
+> 		#self.domains.append({ 'fuzzer': 'Various', 'domain-name': self.domain.replace('.com', '.es')})
+> 		#self.domains.append({ 'fuzzer': 'Various', 'domain-name': self.domain.replace('.com', '.it')})
+> 		#self.domains.append({ 'fuzzer': 'Various', 'domain-name': self.domain.replace('.com', '.net')})
+> 		#self.domains.append({ 'fuzzer': 'Various', 'domain-name': self.domain.replace('.com', '.co')})
+> 		#self.domains.append({ 'fuzzer': 'Various', 'domain-name': self.domain.replace('.com', '.uk')})
+> 		#self.domains.append({ 'fuzzer': 'Various', 'domain-name': self.domain.replace('.com', '.org')})
+> 		#self.domains.append({ 'fuzzer': 'Various', 'domain-name': self.domain.replace('.com', '.int')})
+> 		#self.domains.append({ 'fuzzer': 'Various', 'domain-name': self.domain.replace('.com', '.edu')})
+> 		#self.domains.append({ 'fuzzer': 'Various', 'domain-name': self.domain.replace('.com', '.gov')})
+> 		#self.domains.append({ 'fuzzer': 'Various', 'domain-name': self.domain.replace('.com', '.mil')})
+> 		#self.domains.append({ 'fuzzer': 'Various', 'domain-name': self.domain.replace('.com', '.fr')})
+473c475,476
+< 
+---
+// important (it changes dnstwist original workflow): PRINT DOMAINS DIRECTLY
+> 		for d in self.domains: #diff: print dominios codificados según el estándar idna
+> 			print(d.get('domain-name').encode('idna'))
+512d516
+< 
+649,650c653,654
+< 						domain['whois-created'] = str(whoisdb.creation_date).split(' ')[0]
+< 						domain['whois-updated'] = str(whoisdb.last_updated).split(' ')[0]
+---
+// doesn't it work with .split(' ')[0] ?
+> 						domain['whois-created'] = str(whoisdb.creation_date).replace(' ', 'T') #diff: sustituido ".split(' ')[0]"
+> 						domain['whois-updated'] = str(whoisdb.last_updated).replace(' ', 'T') #diff: sustituido ".split(' ')[0]"
+678,680c682
+< 						req = requests.get(self.uri_scheme + '://' + domain['domain-name'] + self.uri_path + self.uri_query,
+< 							timeout=REQUEST_TIMEOUT_HTTP,
+< 							headers={'User-Agent': 'Mozilla/5.0 (dnstwist)'})
+---
+> 						req = requests.get(self.uri_scheme + '://' + domain['domain-name'] + self.uri_path + self.uri_query, timeout=REQUEST_TIMEOUT_HTTP, headers={'User-Agent': 'Mozilla/5.0 (dnstwist)'})
+703d704
+< 
+705,708c706,749
+< 	json_domains = domains
+< 	for domain in json_domains:
+< 		domain['domain-name'] = domain['domain-name'].lower().encode('idna')
+< 		domain['fuzzer'] = domain['fuzzer'].lower()
+---
+// [*] GENERATE_JSON IMPROVED: if args.all:
+> 	#diff: mejoradas las opciones de formato
+> 	formatted_domains = []
+> 	if args.all:
+> 		for domain in domains:
+> 			formatted_domain = dict(dns=dict())
+> 			formatted_domain['name'] = domain['domain-name'].lower().encode('idna')
+> 			formatted_domain['fuzzer'] = domain['fuzzer'].lower()
+> 
+> 			if 'dns-a' in domain:
+> 				formatted_domain['dns']['a'] = domain['dns-a']
+> 			if 'dns-aaaa' in domain:
+> 				formatted_domain['dns']['aaaa'] = domain['dns-aaaa']
+> 			if 'dns-mx' in domain:
+> 				formatted_domain['dns']['mx'] = domain['dns-mx']
+> 			if 'dns-mxspy' in domain:
+> 				formatted_domain['dns']['mxspy'] = domain['dns-mxspy']
+> 			if 'dns-ns' in domain:
+> 				formatted_domain['dns']['ns'] = domain['dns-ns']
+> 			if 'geoip-country' in domain:
+> 				formatted_domain['geoip'] = dict(country=domain['geoip-country'])
+> 			if 'whois-created' in domain and 'whois-updated' in domain:
+> 				domain['whois'] = dict(created=domain['whois-created'], updated=domain['whois-updated'])
+> 			if 'ssdeep-score' in domain:
+> 				formatted_domain['ssdeep_score'] = domain['ssdeep-score']
+> 			if 'banner-http' in domain or 'banner-smtp' in domain:
+> 				formatted_domain["banners"] = dict()
+> 				if 'banner-http' in domain:
+> 					formatted_domain['banners']['http'] = domain['banner-http']
+> 				if 'banner-smtp' in domain:
+> 					formatted_domain['banners']['smtp'] = domain['banner-smtp']
+> 
+> 			formatted_domains.append(formatted_domain)
+> 
+> 	else:
+> 		formatted_domains = domains
+> 		for domain in formatted_domains:
+> 			if 'dns-a' in domain:
+> 				domain['dns-a'] = domain['dns-a'][0]
+> 			if 'dns-aaaaa' in domain:
+> 				domain['dns-aaaa'] = domain['dns-aaaa'][0]
+> 			if 'dns-mx' in domain:
+> 				domain['dns-mx'] = domain['dns-mx'][0]
+> 			if 'dns-ns' in domain:
+> 				domain['dns-ns'] = domain['dns-ns'][0]
+710d750
+< 	return json.dumps(json_domains, indent=4, sort_keys=True)
+711a752
+// WHY FORMATTED_DOMAINS (ARRAY) IS NOT A JSON?
+> 	return json.dumps(formatted_domains, indent=4, sort_keys=True)
+730d770
+< 
+782,784c822
+< 		output += '%s%s%s %s %s\n' % (FG_BLU,
+< 			domain['fuzzer'].ljust(width_fuzzer),
+< 			FG_RST, domain['domain-name'].ljust(width_domain), info)
+---
+> 		output += '%s%s%s %s %s\n' % (FG_BLU, domain['fuzzer'].ljust(width_fuzzer), FG_RST, domain['domain-name'].ljust(width_domain), info)
+788d825
+< 
+801,828c838,851
+< 	parser.add_argument('domain',
+< 		help='domain name or URL to check')
+< 	parser.add_argument('-a', '--all', action='store_true',
+< 		help='show all DNS records')
+< 	parser.add_argument('-b', '--banners', action='store_true',
+< 		help='determine HTTP and SMTP service banners')
+< 	parser.add_argument('-c', '--csv', action='store_true',
+< 		help='print output in CSV format')
+< 	parser.add_argument('-d', '--dictionary', type=str, metavar='FILE',
+< 		help='generate additional domains using dictionary FILE')
+< 	parser.add_argument('-g', '--geoip', action='store_true',
+< 		help='perform lookup for GeoIP location')
+< 	parser.add_argument('-j', '--json', action='store_true',
+< 		help='print output in JSON format')
+< 	parser.add_argument('-m', '--mxcheck', action='store_true',
+< 		help='check if MX host can be used to intercept e-mails')
+< 	parser.add_argument('-r', '--registered', action='store_true',
+< 		help='show only registered domain names')
+< 	parser.add_argument('-s', '--ssdeep', action='store_true',
+< 		help='fetch web pages and compare their fuzzy hashes to evaluate similarity')
+< 	parser.add_argument('-t', '--threads', type=int, metavar='NUMBER', default=THREAD_COUNT_DEFAULT,
+< 		help='start specified NUMBER of threads (default: %d)' % THREAD_COUNT_DEFAULT)
+< 	parser.add_argument('-w', '--whois', action='store_true',
+< 		help='perform lookup for WHOIS creation/update time (slow)')
+< 	parser.add_argument('--nameservers', type=str, metavar='LIST',
+< 		help='comma separated list of nameservers to query')
+< 	parser.add_argument('--port', type=int, metavar='PORT',
+< 		help='the port to send queries to')
+---
+> 	parser.add_argument('domain', help='domain name or URL to check')
+> 	parser.add_argument('-a', '--all', action='store_true', help='show all DNS records')
+> 	parser.add_argument('-b', '--banners', action='store_true', help='determine HTTP and SMTP service banners')
+> 	parser.add_argument('-c', '--csv', action='store_true', help='print output in CSV format')
+> 	parser.add_argument('-d', '--dictionary', type=str, metavar='FILE', help='generate additional domains using dictionary FILE')
+> 	parser.add_argument('-g', '--geoip', action='store_true', help='perform lookup for GeoIP location')
+> 	parser.add_argument('-j', '--json', action='store_true', help='print output in JSON format')
+> 	parser.add_argument('-m', '--mxcheck', action='store_true', help='check if MX host can be used to intercept e-mails')
+> 	parser.add_argument('-r', '--registered', action='store_true', help='show only registered domain names')
+> 	parser.add_argument('-s', '--ssdeep', action='store_true', help='fetch web pages and compare their fuzzy hashes to evaluate similarity')
+> 	parser.add_argument('-t', '--threads', type=int, metavar='NUMBER', default=THREAD_COUNT_DEFAULT, help='start specified NUMBER of threads (default: %d)' % THREAD_COUNT_DEFAULT)
+> 	parser.add_argument('-w', '--whois', action='store_true', help='perform lookup for WHOIS creation/update time (slow)')
+> 	parser.add_argument('--nameservers', type=str, metavar='LIST', help='comma separated list of nameservers to query')
+> 	parser.add_argument('--port', type=int, metavar='PORT', help='the port to send queries to')
+853a877
+> 	#print(domains)
+863c887
+< 
+---
+> 	exit()
+871,872c895,897
+< 	if not MODULE_DNSPYTHON:
+< 		p_err('notice: missing module: dnspython (DNS features limited)\n')
+---
+> 	#diff: comentado
+> 	#if not MODULE_DNSPYTHON:
+> 	#	p_err('notice: missing module: dnspython (DNS features limited)\n')
+891,893c916
+< 			req = requests.get(url.get_full_uri(),
+< 				timeout=REQUEST_TIMEOUT_HTTP,
+< 				headers={'User-Agent': 'Mozilla/5.0 (dnstwist)'})
+---
+> 			req = requests.get(url.get_full_uri(), timeout=REQUEST_TIMEOUT_HTTP, headers={'User-Agent': 'Mozilla/5.0 (dnstwist)'})
+918c941,942
+< 	p_cli('Processing %d domain variants ' % len(domains))
+---
+> 	#diff: comentado
+> 	#p_cli('Processing %d domain variants ' % len(domains))
+969c993,994
+< 	p_cli(' %d hits (%d%%)\n\n' % (hits_total, hits_percent))
+---
+> 	#diff: comentado
+> 	#p_cli(' %d hits (%d%%)\n\n' % (hits_total, hits_percent))
