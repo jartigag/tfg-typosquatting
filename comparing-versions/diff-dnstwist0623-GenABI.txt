@@ -8,7 +8,7 @@
 < # *v20180528:
 < #	- step of progress % decreased
 < #	- increased coverage of the homoglyph fuzzing function (experimental)
-< #	- http, https, https-www, ww, www variants to the dictionary
+< #	- http, https, https-www, ww, www variatns to the dictionary
 < #	- new chars in homoglyph fuzzer
 < #	- changed validation of generated domains
 < #	- changed format for whois queries (.split(' ')[0])

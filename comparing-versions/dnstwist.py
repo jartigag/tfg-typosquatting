@@ -3,24 +3,6 @@
 #
 # dnstwist
 #
-# CHANGELOG:
-# *v20180623:
-#	- single arg: --output['cli', 'csv', 'json', 'idle' (without any DNS checks)]
-# *v20180528:
-#	- step of progress % decreased
-#	- increased coverage of the homoglyph fuzzing function (experimental)
-#	- http, https, https-www, ww, www variants to the dictionary
-#	- new chars in homoglyph fuzzer
-#	- changed validation of generated domains
-#	- changed format for whois queries (.split(' ')[0])
-#	- improved hyphenation fuzzer to generate multi-hyphenated domains
-#	- idn encoded in csv and json output
-#	- reorganized help screen
-#	- minor fixes
-# *v0.4b (20161123):
-#	- new options: --all, --nameservers, --port
-#	- other fixes
-#
 # Generate and resolve domain variations to detect typo squatting,
 # phishing and corporate espionage.
 #
@@ -37,7 +19,7 @@
 # limitations under the License.
 
 __author__ = 'Marcin Ulikowski'
-__version__ = '20180623'
+__version__ = '1.04b'
 __email__ = 'marcin@ulikowski.pl'
 
 import re
@@ -131,8 +113,8 @@ else:
 
 def p_cli(data):
 	global args
-	if args.format == 'cli':
-		sys.stdout.write(data.encode('utf-8'))
+	if not args.csv and not args.json:
+		sys.stdout.write(str(data.encode('utf-8'))) #diff
 		sys.stdout.flush()
 
 
@@ -143,13 +125,13 @@ def p_err(data):
 
 def p_csv(data):
 	global args
-	if args.format == 'csv':
+	if args.csv:
 		sys.stdout.write(data)
 
 
 def p_json(data):
 	global args
-	if args.format == 'json':
+	if args.json:
 		sys.stdout.write(data)
 
 
@@ -278,10 +260,15 @@ class DomainFuzz():
 		return domain[0] + '.' + domain[1], domain[2]
 
 	def __validate_domain(self, domain):
-		if len(domain) == len(domain.encode('idna')) and domain != domain.encode('idna'):
+		#diff: validación simplificada
+		if len(domain) > 255:
 			return False
-		allowed = re.compile('(?=^.{4,253}$)(^((?!-)[a-zA-Z0-9-]{1,63}(?<!-)\.)+[a-zA-Z]{2,63}\.?$)', re.IGNORECASE)
-		return allowed.match(domain.encode('idna'))
+		if domain[-1] == '.':
+			domain = domain[:-1]
+		if len(domain) < len(domain.encode('idna')):
+			return True
+		allowed = re.compile('\A([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}\Z', re.IGNORECASE)
+		return allowed.match(domain)
 
 	def __filter_domains(self):
 		seen = set()
@@ -339,11 +326,12 @@ class DomainFuzz():
 		'z': [u'ʐ', u'ż', u'ź', u'ʐ', u'ᴢ']
 		}
 
-		result_1pass = set()
+		result = []
 
-		for ws in range(1, len(self.domain)):
+		for ws in range(0, len(self.domain)):
 			for i in range(0, (len(self.domain)-ws)+1):
 				win = self.domain[i:i+ws]
+
 				j = 0
 				while j < ws:
 					c = win[j]
@@ -351,28 +339,11 @@ class DomainFuzz():
 						win_copy = win
 						for g in glyphs[c]:
 							win = win.replace(c, g)
-							result_1pass.add(self.domain[:i] + win + self.domain[i+ws:])
+							result.append(self.domain[:i] + win + self.domain[i+ws:])
 							win = win_copy
 					j += 1
 
-		result_2pass = set()
-
-		for domain in result_1pass:
-			for ws in range(1, len(domain)):
-				for i in range(0, (len(domain)-ws)+1):
-					win = domain[i:i+ws]
-					j = 0
-					while j < ws:
-						c = win[j]
-						if c in glyphs:
-							win_copy = win
-							for g in glyphs[c]:
-								win = win.replace(c, g)
-								result_2pass.add(domain[:i] + win + domain[i+ws:])
-								win = win_copy
-						j += 1
-
-		return list(result_2pass)
+		return list(set(result))
 
 	def __hyphenation(self):
 		result = []
@@ -634,7 +605,7 @@ class DomainThread(threading.Thread):
 				except DNSException:
 					pass
 
-				if 'dns-ns' in domain or len(domain['domain-name'].split('.')) > 1:
+				if 'dns-ns' in domain: #diff: elminado "or len(domain['domain-name'].split('.')) > 1:"
 					try:
 						domain['dns-a'] = self.answer_to_list(resolv.query(domain['domain-name'], 'A'))
 					except DNSException:
@@ -704,7 +675,9 @@ class DomainThread(threading.Thread):
 			if self.option_ssdeep:
 				if 'dns-a' in domain:
 					try:
-						req = requests.get(self.uri_scheme + '://' + domain['domain-name'] + self.uri_path + self.uri_query, timeout=REQUEST_TIMEOUT_HTTP, headers={'User-Agent': 'Mozilla/5.0 (dnstwist)'})
+						req = requests.get(self.uri_scheme + '://' + domain['domain-name'] + self.uri_path + self.uri_query,
+							timeout=REQUEST_TIMEOUT_HTTP,
+							headers={'User-Agent': 'Mozilla/5.0 (dnstwist)'})
 						#ssdeep_fuzz = ssdeep.hash(req.text.replace(' ', '').replace('\n', ''))
 						ssdeep_fuzz = ssdeep.hash(req.text)
 					except Exception:
@@ -751,15 +724,6 @@ def generate_csv(domains):
 			domain.get('whois-created', ''),
 			domain.get('whois-updated', ''),
 			str(domain.get('ssdeep-score', '')))
-
-	return output
-
-
-def generate_idle(domains):
-	output = ''
-
-	for domain in domains:
-		output += '%s\n' % domain.get('domain-name').encode('idna')
 
 	return output
 
@@ -815,7 +779,9 @@ def generate_cli(domains):
 		if not info:
 			info = '-'
 
-		output += '%s%s%s %s %s\n' % (FG_BLU, domain['fuzzer'].ljust(width_fuzzer), FG_RST, domain['domain-name'].ljust(width_domain), info)
+		output += '%s%s%s %s %s\n' % (FG_BLU,
+			domain['fuzzer'].ljust(width_fuzzer),
+			FG_RST, domain['domain-name'].ljust(width_domain), info)
 
 	return output
 
@@ -832,19 +798,34 @@ def main():
 	'''Useful as an additional source of targeted threat intelligence.'''
 	)
 
-	parser.add_argument('domain', help='domain name or URL to check')
-	parser.add_argument('-a', '--all', action='store_true', help='show all DNS records')
-	parser.add_argument('-b', '--banners', action='store_true', help='determine HTTP and SMTP service banners')
-	parser.add_argument('-d', '--dictionary', type=str, metavar='FILE', help='generate additional domains using dictionary FILE')
-	parser.add_argument('-g', '--geoip', action='store_true', help='perform lookup for GeoIP location')
-	parser.add_argument('-m', '--mxcheck', action='store_true', help='check if MX host can be used to intercept e-mails')
-	parser.add_argument('-f', '--format', type=str, choices=['cli', 'csv', 'json', 'idle'], default='cli', help='output format (default: cli)')
-	parser.add_argument('-r', '--registered', action='store_true', help='show only registered domain names')
-	parser.add_argument('-s', '--ssdeep', action='store_true', help='fetch web pages and compare their fuzzy hashes to evaluate similarity')
-	parser.add_argument('-t', '--threads', type=int, metavar='NUMBER', default=THREAD_COUNT_DEFAULT, help='start specified NUMBER of threads (default: %d)' % THREAD_COUNT_DEFAULT)
-	parser.add_argument('-w', '--whois', action='store_true', help='perform lookup for WHOIS creation/update time (slow)')
-	parser.add_argument('--nameservers', type=str, metavar='LIST', help='comma separated list of DNS servers to query')
-	parser.add_argument('--port', type=int, metavar='PORT', help='the port number to send queries to')
+	parser.add_argument('domain',
+		help='domain name or URL to check')
+	parser.add_argument('-a', '--all', action='store_true',
+		help='show all DNS records')
+	parser.add_argument('-b', '--banners', action='store_true',
+		help='determine HTTP and SMTP service banners')
+	parser.add_argument('-c', '--csv', action='store_true',
+		help='print output in CSV format')
+	parser.add_argument('-d', '--dictionary', type=str, metavar='FILE',
+		help='generate additional domains using dictionary FILE')
+	parser.add_argument('-g', '--geoip', action='store_true',
+		help='perform lookup for GeoIP location')
+	parser.add_argument('-j', '--json', action='store_true',
+		help='print output in JSON format')
+	parser.add_argument('-m', '--mxcheck', action='store_true',
+		help='check if MX host can be used to intercept e-mails')
+	parser.add_argument('-r', '--registered', action='store_true',
+		help='show only registered domain names')
+	parser.add_argument('-s', '--ssdeep', action='store_true',
+		help='fetch web pages and compare their fuzzy hashes to evaluate similarity')
+	parser.add_argument('-t', '--threads', type=int, metavar='NUMBER', default=THREAD_COUNT_DEFAULT,
+		help='start specified NUMBER of threads (default: %d)' % THREAD_COUNT_DEFAULT)
+	parser.add_argument('-w', '--whois', action='store_true',
+		help='perform lookup for WHOIS creation/update time (slow)')
+	parser.add_argument('--nameservers', type=str, metavar='LIST',
+		help='comma separated list of nameservers to query')
+	parser.add_argument('--port', type=int, metavar='PORT',
+		help='the port to send queries to')
 
 	if len(sys.argv) < 2:
 		sys.stdout.write('%sdnstwist %s by <%s>%s\n\n' % (ST_BRI, __version__, __email__, ST_RST))
@@ -853,6 +834,10 @@ def main():
 
 	global args
 	args = parser.parse_args()
+
+	if args.csv and args.json:
+		p_err('error: cannot use both CSV and JSON as output\n')
+		bye(-1)
 
 	if args.threads < 1:
 		args.threads = THREAD_COUNT_DEFAULT
@@ -876,10 +861,6 @@ def main():
 		ddict.generate()
 		domains += ddict.domains
 
-	if args.format == 'idle':
-		sys.stdout.write(generate_idle(domains))
-		bye(0)
-
 	if not DB_TLD:
 		p_err('error: missing TLD database file: %s\n' % FILE_TLD)
 		bye(-1)
@@ -898,14 +879,7 @@ def main():
 	if not MODULE_REQUESTS and args.ssdeep:
 		p_err('notice: missing module: Requests (web page downloads not possible)\n')
 
-	p_cli(FG_RND + ST_BRI +
-'''     _           _            _     _
-  __| |_ __  ___| |___      _(_)___| |_
- / _` | '_ \/ __| __\ \ /\ / / / __| __|
-| (_| | | | \__ \ |_ \ V  V /| \__ \ |_
- \__,_|_| |_|___/\__| \_/\_/ |_|___/\__| {%s}
-
-''' % __version__ + FG_RST + ST_RST)
+	#diff: eliminado banner "DNSTWIST"
 
 	if MODULE_WHOIS and args.whois:
 		p_cli('Disabling multithreaded job distribution in order to query WHOIS servers\n')
@@ -914,7 +888,9 @@ def main():
 	if args.ssdeep and MODULE_SSDEEP and MODULE_REQUESTS:
 		p_cli('Fetching content from: ' + url.get_full_uri() + ' ... ')
 		try:
-			req = requests.get(url.get_full_uri(), timeout=REQUEST_TIMEOUT_HTTP, headers={'User-Agent': 'Mozilla/5.0 (dnstwist)'})
+			req = requests.get(url.get_full_uri(),
+				timeout=REQUEST_TIMEOUT_HTTP,
+				headers={'User-Agent': 'Mozilla/5.0 (dnstwist)'})
 		except requests.exceptions.ConnectionError:
 			p_cli('Connection error\n')
 			args.ssdeep = False
@@ -980,7 +956,7 @@ def main():
 	while not jobs.empty():
 		p_cli('.')
 		qcurr = 100 * (len(domains) - jobs.qsize()) / len(domains)
-		if qcurr - 15 >= qperc:
+		if qcurr - 20 >= qperc:
 			qperc = qcurr
 			p_cli('%u%%' % qperc)
 		time.sleep(1)
@@ -1002,9 +978,9 @@ def main():
 		del domains_registered
 
 	if domains:
-		if args.format == 'csv':
+		if args.csv:
 			p_csv(generate_csv(domains))
-		elif args.format == 'json':
+		elif args.json:
 			p_json(generate_json(domains))
 		else:
 			p_cli(generate_cli(domains))

@@ -702,7 +702,7 @@ def one_or_all(answers):
 			result = ''
 	return result
 
-def generate_json(domains):
+def generate_jsonk(domains):
 	#diff: mejoradas las opciones de formato
 	formatted_domains = []
 	if args.all:

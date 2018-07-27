@@ -1,0 +1,2 @@
+33.17user 8.04system 1:50.19elapsed 37%CPU (0avgtext+0avgdata 33320maxresident)k
+0inputs+0outputs (0major+12606minor)pagefaults 0swaps
