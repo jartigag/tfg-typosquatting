@@ -6,7 +6,7 @@
 # GENerate a DICTionary of DOMAINS from a list of Official Domains and a list of ccTLDs,
 # including TYPOsquatting variations
 
-#usage: genTypoDict.py [-v] tldsJSONFile domainsDirectory outputDictFile
+#usage: genTypoDict.py [-v] tldsJSONFile domainsDirectory outputDictFile [-t technic1 technic2]
 
 #TODO: add stats
 #TODO: REMOVE DUPlicates in res
@@ -50,27 +50,27 @@ def genDict(tldsFile,domainsDir,verbose,technics):
 			for domain in domWithTLDs:
 				dfuzz = DomainFuzz(domain)
 				dfuzz.generate_originals()
-				if args.technics=='addition':
+				if 'addition'in args.technics:
 					dfuzz.generate_addition()
-				if args.technics=='bitsquatting':
+				if 'bitsquatting'in args.technics:
 					dfuzz.generate_bitsquatting()
-				if args.technics=='homoglyph':
+				if 'homoglyph'in args.technics:
 					dfuzz.generate_homoglyph()
-				if args.technics=='hyphenation':
+				if 'hyphenation'in args.technics:
 					dfuzz.generate_hyphenation()
-				if args.technics=='insertion':
+				if 'insertion'in args.technics:
 					dfuzz.generate_insertion()
-				if args.technics=='omission':
+				if 'omission'in args.technics:
 					dfuzz.generate_omission()
-				if args.technics=='repetition':
+				if 'repetition'in args.technics:
 					dfuzz.generate_repetition()
-				if args.technics=='replacement':
+				if 'replacement'in args.technics:
 					dfuzz.generate_replacement()
-				if args.technics=='subdomains':
+				if 'subdomains'in args.technics:
 					dfuzz.generate_subdomains()
-				if args.technics=='transposition':
+				if 'transposition'in args.technics:
 					dfuzz.generate_transposition()
-				if args.technics=='vowelswap':
+				if 'vowelswap'in args.technics:
 					dfuzz.generate_vowelswap()
 				res.append(dfuzz.domains)
 				nvars += len(dfuzz.domains)
@@ -100,7 +100,7 @@ if __name__ == '__main__':
 	parser.add_argument('domainsDirectory',help='e.g.: files/DAT/')
 	parser.add_argument('outputDictFile',help='e.g.: dict-44tlds.json')
 	parser.add_argument('-v','--verbose',action='store_true')
-	parser.add_argument('-t', '--technics', type=str,
+	parser.add_argument('-t', '--technics', type=str, nargs='+',
 		choices=['addition','bitsquatting', 'homoglyph', 'hyphenation', 'insertion', 'omission', 'repetition', 'replacement', 'subdomains', 'transposition', 'vowelswap'],
 		default=['addition','bitsquatting', 'homoglyph', 'hyphenation', 'insertion', 'omission', 'repetition', 'replacement', 'subdomains', 'transposition', 'vowelswap'],
 		help='typosquatting technics included (default: all)')
