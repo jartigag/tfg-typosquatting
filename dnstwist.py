@@ -19,8 +19,13 @@
 # limitations under the License.
 
 __author__ = 'Marcin Ulikowski'
-__version__ = '1.04b'
+__author__ = 'Aruna Prem Bianzino'
+__author__ = 'Javier Artiga Garijo'
+#! to gen dicts step by step, generate func was divided into generate_(technic-name) funcs
+__version__ = '0.2 (based on original\'s 1.04b)'
 __email__ = 'marcin@ulikowski.pl'
+__email__ = 'arunaprem.bianzino@global.11paths.com'
+__email__ = 'javier.artiga@global.11paths.com'
 
 import re
 import sys
@@ -297,33 +302,62 @@ class DomainFuzz():
 		return result
 
 	def __homoglyph(self):
+		# glyphs = {
+		# 'a': [u'4', u'à', u'á', u'â', u'ã', u'ä', u'å', u'ɑ', u'а', u'ạ', u'ǎ', u'ă', u'ȧ', u'ӓ'],
+		# 'b': ['d', 'lb', 'ib', u'ʙ', u'Ь', u'b̔', u'ɓ', u'Б'],
+		# 'c': [u'ϲ', u'с', u'ƈ', u'ċ', u'ć', u'ç'],
+		# 'd': ['b', 'cl', 'dl', 'di', u'ԁ', u'ժ', u'ɗ', u'đ'],
+		# 'e': [u'3', u'é', u'ê', u'ë', u'ē', u'ĕ', u'ě', u'ė', u'е', u'ẹ', u'ę', u'є', u'ϵ', u'ҽ'],
+		# 'f': [u'Ϝ', u'ƒ', u'Ғ'],
+		# 'g': ['q', u'ɢ', u'ɡ', u'Ԍ', u'Ԍ', u'ġ', u'ğ', u'ց', u'ǵ', u'ģ'],
+		# 'h': ['lh', 'ih', u'һ', u'հ', u'Ꮒ', u'н'],
+		# 'i': ['1', 'l', u'Ꭵ', u'í', u'ï', u'ı', u'ɩ', u'ι', u'ꙇ', u'ǐ', u'ĭ'],
+		# 'j': [u'ј', u'ʝ', u'ϳ', u'ɉ'],
+		# 'k': ['lk', 'ik', 'lc', u'κ', u'ⲕ', u'κ'],
+		# 'l': ['1', 'i', u'ɫ', u'ł'],
+		# 'm': ['n', 'nn', 'rn', 'rr', u'ṃ', u'ᴍ', u'м', u'ɱ'],
+		# 'n': ['m', 'r', u'ń'],
+		# 'o': ['0', u'Ο', u'ο', u'О', u'о', u'Օ', u'ȯ', u'ọ', u'ỏ', u'ơ', u'ó', u'ö', u'ӧ'],
+		# 'p': [u'ρ', u'р', u'ƿ', u'Ϸ', u'Þ'],
+		# 'q': ['g', u'զ', u'ԛ', u'գ', u'ʠ'],
+		# 'r': [u'ʀ', u'Г', u'ᴦ', u'ɼ', u'ɽ'],
+		# 's': [u'Ⴝ', u'Ꮪ', u'ʂ', u'ś', u'ѕ'],
+		# 't': [u'τ', u'т', u'ţ'],
+		# 'u': [u'μ', u'υ', u'Ս', u'ս', u'ц', u'ᴜ', u'ǔ', u'ŭ'],
+		# 'v': [u'ѵ', u'ν', u'v̇'],
+		# 'w': ['vv', u'ѡ', u'ա', u'ԝ'],
+		# 'x': [u'х', u'ҳ', u'ẋ'],
+		# 'y': [u'ʏ', u'γ', u'у', u'Ү', u'ý'],
+		# 'z': [u'ʐ', u'ż', u'ź', u'ʐ', u'ᴢ']
+		# }
+		# diff: reducido
 		glyphs = {
-		'a': [u'à', u'á', u'â', u'ã', u'ä', u'å', u'ɑ', u'а', u'ạ', u'ǎ', u'ă', u'ȧ', u'ӓ'],
-		'b': ['d', 'lb', 'ib', u'ʙ', u'Ь', u'b̔', u'ɓ', u'Б'],
-		'c': [u'ϲ', u'с', u'ƈ', u'ċ', u'ć', u'ç'],
-		'd': ['b', 'cl', 'dl', 'di', u'ԁ', u'ժ', u'ɗ', u'đ'],
-		'e': [u'é', u'ê', u'ë', u'ē', u'ĕ', u'ě', u'ė', u'е', u'ẹ', u'ę', u'є', u'ϵ', u'ҽ'],
-		'f': [u'Ϝ', u'ƒ', u'Ғ'],
-		'g': ['q', u'ɢ', u'ɡ', u'Ԍ', u'Ԍ', u'ġ', u'ğ', u'ց', u'ǵ', u'ģ'],
-		'h': ['lh', 'ih', u'һ', u'հ', u'Ꮒ', u'н'],
-		'i': ['1', 'l', u'Ꭵ', u'í', u'ï', u'ı', u'ɩ', u'ι', u'ꙇ', u'ǐ', u'ĭ'],
-		'j': [u'ј', u'ʝ', u'ϳ', u'ɉ'],
-		'k': ['lk', 'ik', 'lc', u'κ', u'ⲕ', u'κ'],
-		'l': ['1', 'i', u'ɫ', u'ł'],
-		'm': ['n', 'nn', 'rn', 'rr', u'ṃ', u'ᴍ', u'м', u'ɱ'],
-		'n': ['m', 'r', u'ń'],
-		'o': ['0', u'Ο', u'ο', u'О', u'о', u'Օ', u'ȯ', u'ọ', u'ỏ', u'ơ', u'ó', u'ö', u'ӧ'],
-		'p': [u'ρ', u'р', u'ƿ', u'Ϸ', u'Þ'],
-		'q': ['g', u'զ', u'ԛ', u'գ', u'ʠ'],
-		'r': [u'ʀ', u'Г', u'ᴦ', u'ɼ', u'ɽ'],
-		's': [u'Ⴝ', u'Ꮪ', u'ʂ', u'ś', u'ѕ'],
-		't': [u'τ', u'т', u'ţ'],
-		'u': [u'μ', u'υ', u'Ս', u'ս', u'ц', u'ᴜ', u'ǔ', u'ŭ'],
-		'v': [u'ѵ', u'ν', u'v̇'],
-		'w': ['vv', u'ѡ', u'ա', u'ԝ'],
-		'x': [u'х', u'ҳ', u'ẋ'],
-		'y': [u'ʏ', u'γ', u'у', u'Ү', u'ý'],
-		'z': [u'ʐ', u'ż', u'ź', u'ʐ', u'ᴢ']
+		'a': [u'à', u'á', u'â', u'ã', u'ä', u'å', u'ɑ', u'4', u'а'],
+		'b': ['d', 'lb', 'ib', u'ʙ', u'Ь', u'ｂ'],
+		'c': [u'ϲ', u'с', u'ⅽ'],
+		'd': ['b', 'cl', 'dl', 'di', u'ԁ', u'ժ', u'ⅾ', u'ｄ'],
+		'e': [u'é', u'ê', u'ë', u'ē', u'ĕ', u'ė', u'ｅ', u'3', u'е'],
+		'f': [u'Ϝ', u'Ｆ', u'ph', u'ｆ'],
+		'g': ['q', u'ɢ', u'ɡ', u'Ԍ', u'Ԍ', u'ｇ'],
+		'h': ['lh', 'ih', u'һ', u'ｈ'],
+		'i': ['1', 'l', u'Ꭵ', u'ⅰ', u'1', u'ｉ'],
+		'j': [u'ј', u'ｊ'],
+		'k': ['lk', 'ik', 'lc', u'κ', u'ｋ', u'c'],
+		'l': ['1', 'i', u'ⅼ', u'ｌ'],
+		'm': ['n', 'nn', 'rn', 'rr', u'ⅿ', u'ｍ'],
+		'n': ['m', 'r', u'ｎ'],
+		'o': ['0', u'Ο', u'ο', u'О', u'о', u'Օ', u'Ｏ', u'ｏ'],
+		'p': [u'ρ', u'р', u'ｐ'],
+		'q': ['g', u'ｑ'],
+		'r': [u'ʀ', u'ｒ'],
+		's': [u'Ⴝ', u'Ꮪ', u'Ｓ', u'5', u'ｓ'],
+		't': [u'τ', u'ｔ'],
+		'u': [u'μ', u'υ', u'Ս', u'Ｕ', u'ｕ', u'v'],
+		'v': [u'ｖ', u'ѵ', u'ⅴ', u'u'],
+		'w': ['vv', u'ѡ', u'ｗ'],
+		'x': [u'ⅹ', u'ｘ'],
+		'y': [u'ʏ', u'γ', u'у', u'Ү', u'ｙ'],
+		'z': [u'ｚ']
 		}
 
 		result = []
@@ -434,6 +468,54 @@ class DomainFuzz():
 			result.append(self.domain + chr(i))
 
 		return result
+
+	def generate_originals(self):
+		self.domains.append({ 'fuzzer': 'Original*', 'domain-name': self.domain + '.' + self.tld })
+
+	def generate_addition(self):
+		for domain in self.__addition():
+			self.domains.append({ 'fuzzer': 'Addition', 'domain-name': domain + '.' + self.tld })
+
+	def generate_bitsquatting(self):
+		for domain in self.__bitsquatting():
+					self.domains.append({ 'fuzzer': 'Bitsquatting', 'domain-name': domain + '.' + self.tld })
+
+	def generate_homoglyph(self):
+		for domain in self.__homoglyph():
+			self.domains.append({ 'fuzzer': 'Homoglyph', 'domain-name': domain + '.' + self.tld })
+
+	def generate_hyphenation(self):
+		for domain in self.__hyphenation():
+					self.domains.append({ 'fuzzer': 'Hyphenation', 'domain-name': domain + '.' + self.tld })
+
+	def generate_insertion(self):
+		for domain in self.__insertion():
+			self.domains.append({ 'fuzzer': 'Insertion', 'domain-name': domain + '.' + self.tld })
+
+	def generate_omission(self):
+		for domain in self.__omission():
+					self.domains.append({ 'fuzzer': 'Omission', 'domain-name': domain + '.' + self.tld })
+
+	def generate_repetition(self):
+		for domain in self.__repetition():
+					self.domains.append({ 'fuzzer': 'Repetition', 'domain-name': domain + '.' + self.tld })
+
+	def generate_replacement(self):
+		for domain in self.__replacement():
+					self.domains.append({ 'fuzzer': 'Replacement', 'domain-name': domain + '.' + self.tld })
+
+	def generate_subdomain(self):
+		for domain in self.__subdomain():
+					self.domains.append({ 'fuzzer': 'Subdomain', 'domain-name': domain + '.' + self.tld })
+
+	def generate_transposition(self):
+		for domain in self.__transposition():
+					self.domains.append({ 'fuzzer': 'Transposition', 'domain-name': domain + '.' + self.tld })
+
+	def generate_vowelswap(self):
+		for domain in self.__vowel_swap():
+					self.domains.append({ 'fuzzer': 'Vowel-swap', 'domain-name': domain + '.' + self.tld })
+
 
 	def generate(self):
 		self.domains.append({ 'fuzzer': 'Original*', 'domain-name': self.domain + '.' + self.tld })
