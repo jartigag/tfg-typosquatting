@@ -8,8 +8,10 @@
 
 #usage: genTypoDict.py [-v] tldsJSONFile domainsDirectory outputDictFile [-t technic1 technic2]
 
+#!!!! does procRegs() work correctly??
 #TODO: REMOVE DUPlicates in res
 #TODO?: adapt generate_json to create a dict of registered domains only
+#FIXME: print json.dumps
 
 import argparse
 import os
@@ -148,4 +150,7 @@ if __name__ == '__main__':
 
 	# print results as a json to outputDictFile
 	with open(args.outputDictFile,'w') as f:
-		print(json.dumps(results,indent=2,sort_keys=True),file=f)
+		try:
+			print(json.dumps(results,indent=2,sort_keys=True),file=f)
+		except TypeError: #FIXME: why TypeError raises? -> why b'domain.com' appears?
+			print(results,file=f)
