@@ -9,10 +9,13 @@
 
 echo "$(date) - running script.."
 i=1
+echo "[" >> regDoms-typoHits.json
 cat merge-doms.txt | while read domain
 do
-   python2 dnstwist.py $domain -r -j >> regDoms-typoHits.json
-   echo -ne "$i\033[0K\r"
-   ((i++))
-done 
+	python2 dnstwist.py $domain -r -j >> regDoms-typoHits.json
+	echo "," >> regDoms-typoHits.json
+	echo -ne "$i\033[0K\r"
+((i++))
+done
+echo "]" >> regDoms-typoHits.json
 echo "$(date) - script done."
