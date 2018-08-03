@@ -1,8 +1,8 @@
 #!/bin/bash
 # -*- coding: utf-8 -*-
-#author: Javier Artiga Garijo (v0.2)
-#date: 31/07/2018
-#version: 0.2 (numbers about registered doms, mx servers, ip addresses, total variations)
+#author: Javier Artiga Garijo (v0.3)
+#date: 03/08/2018
+#version: 0.3 (a clearer way of showing percents)
 #
 # extract some numbers from typoHits output
 
@@ -14,7 +14,8 @@ percent() {
 	echo "$(echo "scale=$3;$1*100/$2" | bc -l)"
 }
 
-printf "%-15s %-15s %-15s %-15s\n" "technic:" "reg: (% total)" "mx: [% reg]" "ip: [% reg]"
+printf "%-15s %-15s %-15s %-15s\n" "technic:" "reg:" "mx:" "ip:"
+printf "%-13s %-13s %-17s %-17s\n" "" "(% of total)" "[% in each technic]" "[% in each technic]"
 for t in Various Original Repetition Hyphenation Transposition Vowel-swap Omission \
 Subdomain Addition Homoglyph Replacement Bitsquatting Insertion
 do
@@ -31,12 +32,10 @@ totalVars=$(grep -o "[0-9]\+ domain" $1 | awk '{ SUM += $1} END { print SUM }')
 
 printf "%-15s %-15s %-15s %-15s\n" "" "-----------" "-----------" "-----------"
 printf "%-15s %-15s %-15s %-15s\n" "total:" \
-"$totalReg ($(percent $totalMX $totalVars 3)%)" \
+"$totalReg ($(percent $totalMX $totalVars 3)%" \
 "$totalMX ($(percent $totalMX $totalReg 0)%)" \
 "$totalIP ($(percent $totalIP $totalReg 0)%)"
-printf "%-15s %-15s %-15s %-15s\n" "" "(% of variatns)" "(% of reg)" "(% of reg)"
-
-printf "total variations: $totalVars\n"
+printf "%-6s %-22s %-16s %-16s\n" "" "of $totalVars variations)" "(% of total reg)" "(% of total reg)"
 
 # technic:        reg: (% total)  mx: [% reg]     ip: [% reg]
 # Various         4265 (0%)       2121 [49%]      3951 [92%]
