@@ -12,8 +12,8 @@ i=1
 echo "[" >> regDoms-typoHits.json
 cat merge-doms.txt | while read domain
 do
-	python2 dnstwist.py $domain -r -j >> regDoms-typoHits.json
-	echo "," >> regDoms-typoHits.json
+	python2 dnstwist.py $domain -r -j -t 300 >> regDoms-typoHits.json
+	echo "," >> regDoms-typoHits.json #TODO: don't print "," when dnstwist $domain don't get data
 	echo -ne "$i\033[0K\r"
 ((i++))
 done
