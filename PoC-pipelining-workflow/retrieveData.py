@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #author: Javier Artiga Garijo (v0.4)
-#date: 06/08/2018 (working on PoC, according the Workflow)
+#date: 07/08/2018 (working on PoC, according the Workflow)
 #version: 0.4 (based on ts-updater.py)
 #given a dictionary of domains, RETRIEVE DATA of whois, ip, mx records, webs for each domain
 #and classify it as low/high priority + status info.
 #results of each domain are stored in an array of Domain objects with all their collected info.
 #
-#recommended execution: /usr/bin/time -o time.txt python3 retrieveData.py [-v] dictFile.json outputFile.json >> logFile.log
+#recommended execution: /usr/bin/time -o time.txt python3 retrieveData.py [-d dictFile.json] [-o outputFile.json] [-v] >> logFile.log
 
-#TO-DO LIST for v0.5 (06/08/2018)
-# - read from genTypoDict output
+#TO-DO LIST for v0.5 (07/08/2018)
 # - use DomainThread to parallel processing requests
 
 import argparse
@@ -23,6 +22,7 @@ from requests.packages.urllib3.exceptions import InsecureRequestWarning
 import socket
 import json
 from dnstwist import DomainThread
+import sys
 
 class Domain:
 	def __init__(self):
@@ -183,19 +183,23 @@ def check_subdomains(d):
 if __name__ == '__main__':
 
 	parser = argparse.ArgumentParser()
-	parser.add_argument('dictFile',help='e.g.: dict-37tlds.json')
-	parser.add_argument('outputFile',help='e.g.: output-37tlds.json')
+	parser.add_argument('-d','--dictFile',help='e.g.: dict-37tlds.json')
+	parser.add_argument('-o','--outputFile',help='e.g.: output-37tlds.json')
 	parser.add_argument('-v','--verbose',action='store_true')
 	args = parser.parse_args()
 
-	results = retrieveDomainsDataFromFile(args.dictFile,args.verbose)
+	if args.dictFile:
+		results = retrieveDomainsDataFromFile(args.dictFile,args.verbose)
+	else:
+		for line in sys.stdin:
+			domain=line.split()[1]
+			# GET IP (just for PoC)
+			try:
+				print(domain,"-->",str(socket.gethostbyname(domain)))
+			except:
+				print(domain,"--> no ip")
 
 	# print results as a json (an array of jsons, actually) to outputFile
-	with open(args.outputFile,'w') as f:
-		print("[",end="",file=f)
-		for r in results:
-			if not results.index(r)==len(results)-1:
-				print(json.dumps(r.__dict__, indent=2, sort_keys=True),end=",\n",file=f)
-			else:
-				print(json.dumps(r.__dict__, indent=2, sort_keys=True),end="",file=f)
-		print("]",file=f)
+	if args.outputFile:
+		with open(args.outputFile,'w') as f:
+			print(json.dumps(results,indent=2,sort_keys=True),file=f)

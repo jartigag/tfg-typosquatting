@@ -12,7 +12,6 @@ import argparse
 import os
 import json
 from dnstwist import DomainFuzz
-from time import sleep #DEBUGGING
 
 def genDict(tldsFile,domainsDir,verbose, pipelining):
 	files = []
@@ -60,7 +59,6 @@ def genDict(tldsFile,domainsDir,verbose, pipelining):
 		if pipelining:
 			for d in fuzzed_doms:
 				print(cust_code,d['domain-name'])
-			sleep(1) #DEBUGGING
 
 		if verbose:
 			print("%i - %s 	%i doms (%i combs, %i vars)" % (i,cust_code,len(ds),len(ds)*len(tlds),nvars))
