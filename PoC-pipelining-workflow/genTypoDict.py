@@ -1,0 +1,82 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#author: Javier Artiga Garijo (v0.1)
+#date: 06/08/2018 (working on PoC, according the Workflow)
+#version: 0.1 (based on genDict v0.4)
+#GENerate a DICTionary of DOMAINS and its TYPOsquatting variations
+#from a list of Official Domains and a list of TLDs
+
+#usage: genTypoDict.py [-o outputDictFile] [-v] tldsJSONFile domainsDirectory
+
+#TO-DO LIST (06/08/2018)
+# - use DomainFuzz
+# - output in stdout, to work with retrieveData through pipelining
+
+import argparse
+import os
+import json
+from dnstwist import DomainFuzz
+
+def genDict(tldsFile,domainsDir,verbose):
+	files = []
+	doms = []
+	result = [] # array with all domains for all clients, as ["customer":cust_code,"domains":res]
+	tlds = json.load(open(tldsFile))
+
+	for f in os.listdir(domainsDir):
+		files.append(f)
+	for file in files:
+		with open(domainsDir+file) as f:
+			doms.append(f.read().splitlines())
+
+	i=0
+	ndoms=0
+	ncombs=0
+	for c in files:
+		res = [] # array with domains combinations for a client
+		e = {} # element (type: dictionary) to append in result array
+		cust_code = c.split('_-_')[0] # customer code
+		i+=1
+		d=doms[i-1]
+		if verbose:
+			print("%i - %s 	%i doms (%i combs)" % (i,cust_code,len(d),len(d)*len(tlds)))
+		ndoms+=len(d)
+		ncombs+=len(d)*len(tlds)
+		for url in d:
+			u = url.rsplit('.',1)[0].lower() # name of the domain
+			#generate combinations with the name and the tlds:
+			for tld in tlds:
+				res.append(u+tld)
+		res = list(set(res)) # REMOVE DUPlicates in res
+		e['customer'] = cust_code
+		e['domains'] = res
+		result.append(e)
+
+	if verbose:
+		print("TOTAL domains:",ndoms)
+		print("TOTAL combinations (with duplicates):",ncombs)
+		print("removing duplicates")
+		c=0
+		for r in result:
+			c+=len(r['domains'])
+		print("TOTAL COMBINATIONS:",c,"(%i duplicates domains removed)"%(ncombs-c))
+
+	return result
+
+if __name__ == '__main__':
+
+	parser = argparse.ArgumentParser()
+	parser.add_argument('tldsJSONFile',help='e.g.: ccTLDS.json')
+	parser.add_argument('domainsDirectory',help='e.g.: files/DAT/')
+	parser.add_argument('-o','--outputDictFile',help='e.g.: dict-37tlds.json')
+	parser.add_argument('-v','--verbose',action='store_true')
+	args = parser.parse_args()
+
+	results = genDict(args.tldsJSONFile,args.domainsDirectory,args.verbose)
+
+	if args.outputDictFile:
+		# print results as a json to outputDictFile
+		with open(args.outputDictFile,'w') as f:
+			print(json.dumps(results,indent=2,sort_keys=True),file=f)
+	else:
+		print(json.dumps(results, indent=2, sort_keys=True))
