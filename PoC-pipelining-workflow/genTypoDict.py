@@ -8,6 +8,8 @@
 
 #usage: genTypoDict.py [-o outputDictFile] [-p | -v] tldsJSONFile domainsDirectory
 
+#TODO: review FORs
+
 import argparse
 import os
 import json
@@ -29,7 +31,8 @@ def genDict(tldsFile,domainsDir,verbose, pipelining):
 	ndoms=0
 	ncombs=0
 	totalnvars=0
-	for c in files:
+	for c in files[0:1]: ## PARA PRUEBA CORTA
+	#for c in files:
 		combs = [] # # array with domains combinations for a client
 		e = {} # element (type: dictionary) to append in result array
 		cust_code = c.split('_-_')[0] # customer code
@@ -52,13 +55,13 @@ def genDict(tldsFile,domainsDir,verbose, pipelining):
 			fuzzed_doms = dfuzz.domains
 			nvars+=len(fuzzed_doms)
 
-		e['customer'] = cust_code
-		e['domains'] = fuzzed_doms
-		result.append(e)
+			e['customer'] = cust_code
+			e['domains'] = fuzzed_doms
+			result.append(e)
 
-		if pipelining:
-			for d in fuzzed_doms:
-				print(cust_code,d)
+			if pipelining:
+				for d in fuzzed_doms:
+					print(cust_code,d)
 
 		if verbose:
 			print("%i - %s 	%i doms (%i combs, %i vars)" % (i,cust_code,len(ds),len(ds)*len(tlds),nvars))
@@ -70,11 +73,7 @@ def genDict(tldsFile,domainsDir,verbose, pipelining):
 	if verbose:
 		print("TOTAL domains:",ndoms)
 		print("TOTAL combinations (with duplicates):",ncombs)
-		print("removing duplicates")
-		c=0
-		for r in result:
-			c+=len(r['domains'])
-		print("TOTAL COMBINATIONS:",c,"(%i duplicates domains removed)"%(ncombs-c))
+		print("TOTAL variations (possible duplicates:",totalnvars)
 
 	return result
 
@@ -94,4 +93,8 @@ if __name__ == '__main__':
 	if args.outputDictFile:
 		# print results as a json to outputDictFile
 		with open(args.outputDictFile,'w') as f:
-			print(json.dumps(results,indent=2,sort_keys=True),file=f)
+			print("[",end="",file=f)
+			for r in results[:-1]:
+				print(json.dumps(r, indent=2, sort_keys=True),end=",\n",file=f)
+			print(json.dumps(results[-1], indent=2, sort_keys=True),end="",file=f)
+			print("]",file=f)

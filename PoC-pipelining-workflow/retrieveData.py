@@ -9,6 +9,8 @@
 #
 #recommended execution: /usr/bin/time -o time.txt python3 retrieveData.py [-d dictFile.json] [-o outputFile.json] [-v] >> logFile.log
 
+#TODO: review retrieveDomainsDataFromFile
+
 import argparse
 from datetime import date, timedelta, datetime
 from time import time
@@ -194,12 +196,7 @@ if __name__ == '__main__':
 	parser.add_argument('-d','--dictFile',help='e.g.: dict-37tlds.json')
 	parser.add_argument('-o','--outputFile',help='e.g.: output-37tlds.json')
 	parser.add_argument('-v','--verbose',action='store_true')
-	parser.add_argument('-t', '--threads', type=int, metavar='NUMBER', default=THREAD_COUNT_DEFAULT,
-		help='start specified NUMBER of threads (default: %d)' % THREAD_COUNT_DEFAULT)
 	args = parser.parse_args()
-
-	if args.threads < 1:
-		args.threads = THREAD_COUNT_DEFAULT
 
 	results = []
 	nregs = 0
