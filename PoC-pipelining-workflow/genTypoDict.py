@@ -58,7 +58,7 @@ def genDict(tldsFile,domainsDir,verbose, pipelining):
 
 		if pipelining:
 			for d in fuzzed_doms:
-				print(cust_code,d['domain-name'])
+				print(cust_code,d)
 
 		if verbose:
 			print("%i - %s 	%i doms (%i combs, %i vars)" % (i,cust_code,len(ds),len(ds)*len(tlds),nvars))

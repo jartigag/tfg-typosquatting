@@ -1,28 +1,27 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-#author: Javier Artiga Garijo (v0.4)
+#author: Javier Artiga Garijo (v0.5)
 #date: 07/08/2018 (working on PoC, according the Workflow)
-#version: 0.4 (based on ts-updater.py)
+#version: 0.5 (get_dns)
 #given a dictionary of domains, RETRIEVE DATA of whois, ip, mx records, webs for each domain
 #and classify it as low/high priority + status info.
 #results of each domain are stored in an array of Domain objects with all their collected info.
 #
 #recommended execution: /usr/bin/time -o time.txt python3 retrieveData.py [-d dictFile.json] [-o outputFile.json] [-v] >> logFile.log
 
-#TO-DO LIST for v0.5 (07/08/2018)
-# - use DomainThread to parallel processing requests
-
 import argparse
 from datetime import date, timedelta, datetime
 from time import time
-import whois
 import dns.resolver
+from dns.exception import DNSException
+import whois
 import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 import socket
 import json
-from dnstwist import DomainThread
 import sys
+
+REQUEST_TIMEOUT_DNS = 5
 
 class Domain:
 	def __init__(self):
@@ -139,6 +138,33 @@ def get_mx(d):
 	except:
 		pass
 
+def get_dns(domain):
+	resolv = dns.resolver.Resolver()
+	resolv.lifetime = REQUEST_TIMEOUT_DNS
+	resolv.timeout = REQUEST_TIMEOUT_DNS
+	try:
+		domain['dns-ns'] = answer_to_list(resolv.query(domain['domain-name'], 'NS'))
+	except DNSException:
+		pass
+
+	if 'dns-ns' in domain:
+		try:
+			domain['dns-a'] = answer_to_list(resolv.query(domain['domain-name'], 'A'))
+		except DNSException:
+			pass
+
+		try:
+			domain['dns-aaaa'] = answer_to_list(resolv.query(domain['domain-name'], 'AAAA'))
+		except DNSException:
+			pass
+
+		try:
+			domain['dns-mx'] = answer_to_list(resolv.query(domain['domain-name'], 'MX'))
+		except DNSException:
+			pass
+
+	return domain
+
 def check_web(d):
 	# CHECK WEB
 	try:
@@ -156,29 +182,11 @@ def check_web(d):
 
 def check_subdomains(d):
 	# CHECK SUBDOMAINS
-	'''
-	#TODO: (fase2) generate subdomains with dnstwist:
-	subdoms = []
-	n=0
-	for do in res:
-		d = DomainFuzz(do)
-		d.generate()
-		for m in d.domains:
-			if 'Subdomain' in m['fuzzer']:
-				subdoms.append(m['domain-name'])
-				n+=1
-	if verbose:
-		print("%i subdomains)" % (n))
-	for s in subdoms:
-		res.append(s)
-	for sub in subdomains:
-		try:
-			requests.get('http://' + sub)
-			web_bool = 'True'
-		except:
-			web_bool = 'False'
-		web_array.append(web_bool)
-	'''
+	#TODO: append subdoms to main domain
+	pass
+
+def answer_to_list(answers):
+		return sorted(list(map(lambda record: str(record).strip(".") if len(str(record).split(' ')) == 1 else str(record).split(' ')[1].strip('.'), answers)))
 
 if __name__ == '__main__':
 
@@ -186,18 +194,31 @@ if __name__ == '__main__':
 	parser.add_argument('-d','--dictFile',help='e.g.: dict-37tlds.json')
 	parser.add_argument('-o','--outputFile',help='e.g.: output-37tlds.json')
 	parser.add_argument('-v','--verbose',action='store_true')
+	parser.add_argument('-t', '--threads', type=int, metavar='NUMBER', default=THREAD_COUNT_DEFAULT,
+		help='start specified NUMBER of threads (default: %d)' % THREAD_COUNT_DEFAULT)
 	args = parser.parse_args()
+
+	if args.threads < 1:
+		args.threads = THREAD_COUNT_DEFAULT
+
+	results = []
+	nregs = 0
 
 	if args.dictFile:
 		results = retrieveDomainsDataFromFile(args.dictFile,args.verbose)
 	else:
+		# GET DNS with DomainThreads (just for PoC)
 		for line in sys.stdin:
-			domain=line.split()[1]
-			# GET IP (just for PoC)
-			try:
-				print(domain,"-->",str(socket.gethostbyname(domain)))
-			except:
-				print(domain,"--> no ip")
+			domain_str = '{'+line.split('{')[1] # e.g.: domain_str = "{'fuzzer': 'Original*', 'domain-name': 'movistar.com'}"
+			dom = json.loads(domain_str.replace( "'",'"')) # json needs property name enclosed in double quotes
+			domain = get_dns(dom)
+			results.append(domain)
+			if args.verbose:
+				if 'dns-ns' in domain or 'dns-a' in domain:
+					print("REGISTERED!",domain['domain-name'])
+					nregs+=1
+				print(domain)
+				print("[%i vars checked, %i regs]"%(len(results),nregs))
 
 	# print results as a json (an array of jsons, actually) to outputFile
 	if args.outputFile:
