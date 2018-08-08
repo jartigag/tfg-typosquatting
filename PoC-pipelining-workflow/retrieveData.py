@@ -51,9 +51,11 @@ def convertDatetime(date):
 	else:
 		return False
 
-def retrieveDomainsDataFromFile(dictFile,verbose):
-	results = []
-	data = json.load(open(dictFile))
+def retrieveDomainsDataFromFile(dictFile,outputFile,verbose):
+	if outputFile:
+		outputF=open(outputFile,'w')
+		print("[",end="",file=outputF)
+	data = json.load(open(dictFile)) #FIXME: MemoryError
 	#data = data[0:1] ## PARA PRUEBA CORTA
 	for e in data:
 		for dom in e['domains']:
@@ -77,9 +79,13 @@ def retrieveDomainsDataFromFile(dictFile,verbose):
 					"%s %s"%(d.customer,d.domain),
 					"(%.2f secs)"%(end_time-start_time))
 
-			results.append(d)
+			if outputFile:
+				# print results as a json to outputF:
+				print(json.dumps(d, indent=2, sort_keys=True),end=",\n",file=outputF)
+				#TODO: avoid to remove last "," manually
 
-	return results
+	if outputFile:
+		print("]",file=outputF)
 
 def check_whois(d):
 	# CHECK WHOIS
@@ -202,7 +208,7 @@ if __name__ == '__main__':
 	nregs = 0
 
 	if args.dictFile:
-		results = retrieveDomainsDataFromFile(args.dictFile,args.verbose)
+		retrieveDomainsDataFromFile(args.dictFile,args.outputFile,args.verbose)
 	else:
 		# GET DNS with DomainThreads (just for PoC)
 		for line in sys.stdin:
@@ -216,12 +222,3 @@ if __name__ == '__main__':
 					nregs+=1
 				print(domain)
 				print("[%i vars checked, %i regs]"%(len(results),nregs))
-
-	# print results as a json (an array of jsons, actually) to outputFile
-	if args.outputFile:
-		with open(args.outputFile,'w') as f:
-			print("[",end="",file=f)
-			for r in results[:-1]:
-				print(json.dumps(r, indent=2, sort_keys=True),end=",\n",file=f)
-			print(json.dumps(results[-1], indent=2, sort_keys=True),end="",file=f)
-			print("]",file=f)

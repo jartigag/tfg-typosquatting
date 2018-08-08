@@ -13,10 +13,12 @@ import os
 import json
 from dnstwist import DomainFuzz
 
-def genDict(tldsFile,domainsDir,verbose, pipelining):
+def genDict(tldsFile,domainsDir,outputDictFile,verbose,pipelining):
+	if outputDictFile:
+		outputDictF=open(outputDictFile,'w')
+		print("[",end="",file=outputDictF)
 	files = []
 	doms = []
-	result = [] # array with all domains for all clients, as ["customer":cust_code,"domain":fuzzed_domains]
 	tlds = json.load(open(tldsFile))
 
 	for f in os.listdir(domainsDir):
@@ -55,11 +57,14 @@ def genDict(tldsFile,domainsDir,verbose, pipelining):
 			e = {} # element (type: dictionary) to append in result array
 			e['customer'] = cust_code
 			e['domains'] = fuzzed_doms
-			result.append(e)
 
 			if pipelining:
 				for d in fuzzed_doms:
 					print(cust_code,d)
+			elif outputDictFile:
+				# print results as a json to outputDictF:
+				print(json.dumps(e, indent=2, sort_keys=True),end=",\n",file=outputDictF)
+				#TODO: avoid to remove last "," manually
 
 		if verbose:
 			print("%i - %s 	%i doms (%i combs, %i vars)" % (i,cust_code,len(ds),len(ds)*len(tlds),nvars))
@@ -73,7 +78,8 @@ def genDict(tldsFile,domainsDir,verbose, pipelining):
 		print("TOTAL combinations: %i (%i with duplicates)"%(len(combs),ncombs))
 		print("TOTAL variations (possible duplicates):",totalnvars)
 
-	return result
+	if outputDictFile:
+		print("]",file=outputDictF)
 
 if __name__ == '__main__':
 
@@ -86,14 +92,4 @@ if __name__ == '__main__':
 	onlyOneGroup.add_argument('-v','--verbose',action='store_true',help='print how many combinations there are')
 	args = parser.parse_args()
 
-	results = genDict(args.tldsJSONFile,args.domainsDirectory,args.verbose,args.pipelining)
-
-	if args.outputDictFile:
-		# print results as a json to outputDictFile
-		# FIXME: it fails with tlds-44.json
-		with open(args.outputDictFile,'w') as f:
-			print("[",end="",file=f)
-			for r in results[:-1]:
-				print(json.dumps(r, indent=2, sort_keys=True),end=",\n",file=f)
-			print(json.dumps(results[-1], indent=2, sort_keys=True),end="",file=f)
-			print("]",file=f)
+	genDict(args.tldsJSONFile,args.domainsDirectory,args.outputDictFile,args.verbose,args.pipelining)
