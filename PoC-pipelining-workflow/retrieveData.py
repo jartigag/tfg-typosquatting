@@ -1,15 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #author: Javier Artiga Garijo (v0.5)
-#date: 07/08/2018 (working on PoC, according the Workflow)
+#date: 08/08/2018
 #version: 0.5 (get_dns)
 #given a dictionary of domains, RETRIEVE DATA of whois, ip, mx records, webs for each domain
 #and classify it as low/high priority + status info.
 #results of each domain are stored in an array of Domain objects with all their collected info.
 #
 #recommended execution: /usr/bin/time -o time.txt python3 retrieveData.py [-d dictFile.json] [-o outputFile.json] [-v] >> logFile.log
-
-#TODO: review retrieveDomainsDataFromFile
 
 import argparse
 from datetime import date, timedelta, datetime
@@ -59,15 +57,17 @@ def retrieveDomainsDataFromFile(dictFile,verbose):
 	#data = data[0:1] ## PARA PRUEBA CORTA
 	for e in data:
 		for dom in e['domains']:
-			d = Domain()
-			d.domain = dom
-			d.customer = e['customer']
+			# d = Domain()
+			# d.domain = dom
+			# d.customer = e['customer']
+
+			d = get_dns(dom)
 
 			start_time = time()
-			check_whois(d)
-			get_ip(d)
-			get_mx(d)
-			check_web(d)
+			# check_whois(d)
+			# get_ip(d)
+			# get_mx(d)
+			# check_web(d)
 			#check_subomains(d)
 			end_time = time()
 
@@ -220,4 +220,8 @@ if __name__ == '__main__':
 	# print results as a json (an array of jsons, actually) to outputFile
 	if args.outputFile:
 		with open(args.outputFile,'w') as f:
-			print(json.dumps(results,indent=2,sort_keys=True),file=f)
+			print("[",end="",file=f)
+			for r in results[:-1]:
+				print(json.dumps(r, indent=2, sort_keys=True),end=",\n",file=f)
+			print(json.dumps(results[-1], indent=2, sort_keys=True),end="",file=f)
+			print("]",file=f)

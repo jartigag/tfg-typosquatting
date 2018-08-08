@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #author: Javier Artiga Garijo (v0.1)
-#date: 07/08/2018 (working on PoC, according the Workflow)
+#date: 08/08/2018
 #version: 0.1 (based on genDict v0.4. including DomainFuzz and --pipelining)
 #GENerate a DICTionary of DOMAINS and its TYPOsquatting variations
 #from a list of Official Domains and a list of TLDs
-
+#
 #usage: genTypoDict.py [-o outputDictFile] [-p | -v] tldsJSONFile domainsDirectory
-
-#TODO: review FORs
 
 import argparse
 import os
@@ -31,10 +29,9 @@ def genDict(tldsFile,domainsDir,verbose, pipelining):
 	ndoms=0
 	ncombs=0
 	totalnvars=0
-	for c in files[0:1]: ## PARA PRUEBA CORTA
-	#for c in files:
+	#for c in files[0:1]: ## PARA PRUEBA CORTA
+	for c in files:
 		combs = [] # # array with domains combinations for a client
-		e = {} # element (type: dictionary) to append in result array
 		cust_code = c.split('_-_')[0] # customer code
 		i+=1
 
@@ -55,6 +52,7 @@ def genDict(tldsFile,domainsDir,verbose, pipelining):
 			fuzzed_doms = dfuzz.domains
 			nvars+=len(fuzzed_doms)
 
+			e = {} # element (type: dictionary) to append in result array
 			e['customer'] = cust_code
 			e['domains'] = fuzzed_doms
 			result.append(e)
@@ -72,8 +70,8 @@ def genDict(tldsFile,domainsDir,verbose, pipelining):
 
 	if verbose:
 		print("TOTAL domains:",ndoms)
-		print("TOTAL combinations (with duplicates):",ncombs)
-		print("TOTAL variations (possible duplicates:",totalnvars)
+		print("TOTAL combinations: %i (%i with duplicates)"%(len(combs),ncombs))
+		print("TOTAL variations (possible duplicates):",totalnvars)
 
 	return result
 
@@ -92,6 +90,7 @@ if __name__ == '__main__':
 
 	if args.outputDictFile:
 		# print results as a json to outputDictFile
+		# FIXME: it fails with tlds-44.json
 		with open(args.outputDictFile,'w') as f:
 			print("[",end="",file=f)
 			for r in results[:-1]:
