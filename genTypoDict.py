@@ -17,13 +17,10 @@ def genDict(tldsFile,domainsDir,outputDictFile,verbose,pipelining):
 	if outputDictFile:
 		outputDictF=open(outputDictFile,'w')
 		print("[",end="",file=outputDictF)
-	files = []
 	doms = []
 	tlds = json.load(open(tldsFile))
 
-	for f in os.listdir(domainsDir):
-		files.append(f)
-	for file in files:
+	for file in os.listdir(domainsDir):
 		with open(domainsDir+file) as f:
 			doms.append(f.read().splitlines())
 
@@ -32,7 +29,7 @@ def genDict(tldsFile,domainsDir,outputDictFile,verbose,pipelining):
 	ncombs=0
 	totalnvars=0
 	#for c in files[0:1]: ## PARA PRUEBA CORTA
-	for c in files:
+	for c in os.listdir(domainsDir):
 		combs = [] # # array with domains combinations for a client
 		cust_code = c.split('_-_')[0] # customer code
 		i+=1
