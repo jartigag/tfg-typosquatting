@@ -29,7 +29,7 @@ rm -r whois-5.2.17
 rm v5.2.17.tar.gz
 
 ## PYTHON
-#(using python3, commented lines can be left as they are now)
+# (using python3, commented lines can be left as they are now)
 #sudo apt install python-pip
 sudo apt install python3-pip
 #sudo pip install whois==0.7
@@ -40,3 +40,6 @@ sudo pip3 install timestring
 sudo pip3 install elasticsearch
 #sudo pip install dnspython==1.15.0
 sudo pip3 install dnspython==1.15.0
+
+## STAGE2
+sudo apt install jq
