@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #author: Javier Artiga Garijo (v0.5)
-#date: 08/08/2018
-#version: 0.5 (get_dns)
+#date: 11/08/2018
+#version: 0.5 (get_dns with Domain class)
 #given a dictionary of domains, RETRIEVE DATA of whois, ip, mx records, webs for each domain
 #and classify it as low/high priority + status info.
 #results of each domain are stored in an array of Domain objects with all their collected info.
@@ -32,6 +32,9 @@ class Domain:
 		self.creation_date = convertDatetime(datetime.now())
 		self.ip = []
 		self.mx = []
+		self.ns = []
+		self.a = []
+		self.aaaa = []
 		self.web = [] # http reqs
 		self.webs = [] # https reqs
 		self.domain = ''
@@ -59,11 +62,11 @@ def retrieveDomainsDataFromFile(dictFile,outputFile,verbose):
 	#data = data[0:1] ## PARA PRUEBA CORTA
 	for e in data:
 		for dom in e['domains']:
-			# d = Domain()
-			# d.domain = dom
-			# d.customer = e['customer']
+			d = Domain()
+			d.domain = dom['domain-name']
+			d.customer = e['customer']
 
-			d = get_dns(dom)
+			get_dns(d)
 
 			start_time = time()
 			# check_whois(d)
@@ -141,37 +144,43 @@ def get_mx(d):
 	# GET MX RECORDS
 	try:
 		ans = dns.resolver.query(d.domain, 'MX')
-		for rdata in sorted(ans):
-			d.mx.append(str(rdata.exchange))
+		#for rdata in sorted(ans):
+		d.mx.append(answer_to_list(ans))
 	except:
 		pass
 
-def get_dns(domain):
+def get_dns(d):
 	resolv = dns.resolver.Resolver()
 	resolv.lifetime = REQUEST_TIMEOUT_DNS
 	resolv.timeout = REQUEST_TIMEOUT_DNS
 	try:
-		domain['dns-ns'] = answer_to_list(resolv.query(domain['domain-name'], 'NS'))
+		ans = resolv.query(d.domain, 'NS')
+		#for rdata in sorted(ans):
+		d.ns.append(answer_to_list(ans))
 	except DNSException:
 		pass
 
-	if 'dns-ns' in domain:
+	if d.ns!=[]:
 		try:
-			domain['dns-a'] = answer_to_list(resolv.query(domain['domain-name'], 'A'))
+			ans = resolv.query(domain['domain-name'], 'A')
+			#for rdata in sorted(ans):
+			d.a.append(answer_to_list(ans))
 		except DNSException:
 			pass
 
 		try:
-			domain['dns-aaaa'] = answer_to_list(resolv.query(domain['domain-name'], 'AAAA'))
+			ans = resolv.query(domain['domain-name'], 'AAAA')
+			#for rdata in sorted(ans):
+			d.aaaa.append(answer_to_list(ans))
 		except DNSException:
 			pass
 
 		try:
-			domain['dns-mx'] = answer_to_list(resolv.query(domain['domain-name'], 'MX'))
+			ans = resolv.query(domain['domain-name'], 'MX')
+			#for rdata in sorted(ans):
+			d.mx.append(answer_to_list(ans))
 		except DNSException:
 			pass
-
-	return domain
 
 def check_web(d):
 	# CHECK WEB
@@ -192,9 +201,8 @@ def check_subdomains(d):
 	# CHECK SUBDOMAINS
 	#TODO: append subdoms to main domain
 	pass
-
 def answer_to_list(answers):
-		return sorted(list(map(lambda record: str(record).strip(".") if len(str(record).split(' ')) == 1 else str(record).split(' ')[1].strip('.'), answers)))
+	return sorted(list(map(lambda record: str(record).strip(".") if len(str(record).split(' ')) == 1 else str(record).split(' ')[1].strip('.'), answers)))
 
 if __name__ == '__main__':
 
@@ -213,12 +221,17 @@ if __name__ == '__main__':
 		# GET DNS with DomainThreads (just for PoC)
 		for line in sys.stdin:
 			domain_str = '{'+line.split('{')[1] # e.g.: domain_str = "{'fuzzer': 'Original*', 'domain-name': 'movistar.com'}"
-			dom = json.loads(domain_str.replace( "'",'"')) # json needs property name enclosed in double quotes
-			domain = get_dns(dom)
-			results.append(domain)
+			domain = json.loads(domain_str.replace( "'",'"')) # json needs property name enclosed in double quotes
+
+			d = Domain()
+			d.domain = domain['domain-name']
+
+			get_dns(d)
+			results.append(d)
+	
 			if args.verbose:
-				if 'dns-ns' in domain or 'dns-a' in domain:
-					print("REGISTERED!",domain['domain-name'])
+				if d.ns!=[]:
+					print("REGISTERED!",d.domain)
 					nregs+=1
-				print(domain)
+				print(json.dumps({"domain": d.domain, "status": d.status, "ns": d.ns}))
 				print("[%i vars checked, %i regs]"%(len(results),nregs))

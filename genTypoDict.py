@@ -28,7 +28,7 @@ def genDict(tldsFile,domainsDir,outputDictFile,verbose,pipelining):
 	ndoms=0
 	ncombs=0
 	totalnvars=0
-	#for c in files[0:1]: ## PARA PRUEBA CORTA
+	#for c in os.listdir(domainsDir)[0:1]: ## PARA PRUEBA CORTA
 	for c in os.listdir(domainsDir):
 		combs = [] # # array with domains combinations for a client
 		cust_code = c.split('_-_')[0] # customer code
@@ -60,7 +60,7 @@ def genDict(tldsFile,domainsDir,outputDictFile,verbose,pipelining):
 					print(cust_code,d)
 			elif outputDictFile:
 				# print results as a json to outputDictF:
-				print(json.dumps(e),end=",\n",file=outputDictF)
+				print(json.dumps(e,sort_keys=True),end=",\n",file=outputDictF)
 				#TODO: avoid to remove last "," manually
 
 		if verbose:
