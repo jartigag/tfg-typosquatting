@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-#author: Javier Artiga Garijo (v0.2)
-#date: 09/08/2018
-#version: 0.2 (based on genDict v0.4. including DomainFuzz and --pipelining)
+#author: Javier Artiga Garijo (v0.3)
+#date: 12/08/2018
+#version: 0.3 (includes --elastic storage)
 #GENerate a DICTionary of DOMAINS and its TYPOsquatting variations
 #from a list of Official Domains and a list of TLDs
 #
@@ -12,8 +12,10 @@ import argparse
 import os
 import json
 from dnstwist import DomainFuzz
+from elasticsearch import Elasticsearch
+from insertES import insertES
 
-def genDict(tldsFile,domainsDir,outputDictFile,verbose,pipelining):
+def genDict(tldsFile,domainsDir,outputDictFile,verbose,pipelining,elasticIndex):
 	if outputDictFile:
 		outputDictF=open(outputDictFile,'w')
 		print("[",end="",file=outputDictF)
@@ -58,6 +60,9 @@ def genDict(tldsFile,domainsDir,outputDictFile,verbose,pipelining):
 			if pipelining:
 				for d in fuzzed_doms:
 					print(cust_code,d)
+			elif elasticIndex:
+				insertES(fuzzed_doms,elasticIndex)
+				print(cust_code,fuzzed_doms[0]['domain-name'])
 			elif outputDictFile:
 				# print results as a json to outputDictF:
 				print(json.dumps(e,sort_keys=True),end=",\n",file=outputDictF)
@@ -85,8 +90,12 @@ if __name__ == '__main__':
 	parser.add_argument('tldsJSONFile',help='e.g.: ccTLDS.json')
 	parser.add_argument('domainsDirectory',help='e.g.: files/DAT/')
 	parser.add_argument('-o','--outputDictFile',help='e.g.: dict-37tlds.json')
+	onlyOneGroup.add_argument('-e','--elastic',metavar='INDEX',help='store results in ElasticSearch database')
 	onlyOneGroup.add_argument('-p','--pipelining',action='store_true',help='print each result in stdout')
 	onlyOneGroup.add_argument('-v','--verbose',action='store_true',help='print how many combinations there are')
 	args = parser.parse_args()
 
-	genDict(args.tldsJSONFile,args.domainsDirectory,args.outputDictFile,args.verbose,args.pipelining)
+	if args.elastic:
+		es = Elasticsearch(['http://localhost:9200'])
+
+	genDict(args.tldsJSONFile,args.domainsDirectory,args.outputDictFile,args.verbose,args.pipelining,args.elastic)
