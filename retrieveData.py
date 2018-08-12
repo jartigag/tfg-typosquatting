@@ -8,7 +8,7 @@
 #for each domain and classify it as low/high priority + status info.
 #results of each domain are stored in an array of Domain objects with all their collected info.
 #
-#recommended execution: /usr/bin/time -o time.txt python3 retrieveData.py [-d dictFile.json] [-o outputFile.json] [-v] >> logFile.log
+#recommended execution: /usr/bin/time -o time.txt python3 retrieveData.py [-d dictFile.json | -e INDEX] [-o outputFile.json] [-v] >> logFile.log
 
 import argparse
 from datetime import date, timedelta, datetime
@@ -21,6 +21,7 @@ from requests.packages.urllib3.exceptions import InsecureRequestWarning
 import socket
 import json
 import sys
+from elasticsearch import Elasticsearch
 
 REQUEST_TIMEOUT_DNS = 5
 
@@ -55,11 +56,14 @@ def convertDatetime(date):
 	else:
 		return False
 
-def retrieveDomainsDataFromFile(dictFile,outputFile,verbose):
+def retrieveDomainsDataFromFile(dictFile,elastic,outputFile,verbose):
 	if outputFile:
 		outputF=open(outputFile,'w')
 		print("[",end="",file=outputF)
-	data = json.load(open(dictFile)) #FIXME: MemoryError
+	if dictFile:
+		data = json.load(open(dictFile))
+	if elastic:
+		#WIP: load data from ES
 	#data = data[0:1] ## PARA PRUEBA CORTA
 	for e in data:
 		for dom in e['domains']:
@@ -87,6 +91,8 @@ def retrieveDomainsDataFromFile(dictFile,outputFile,verbose):
 				# print results as a json to outputF:
 				print(json.dumps(d, indent=2, sort_keys=True),end=",\n",file=outputF)
 				#TODO: avoid to remove last "," manually
+			elif elastic:
+				#WIP: store results in ES
 
 	if outputFile:
 		print("]",file=outputF)
@@ -202,6 +208,7 @@ def check_subdomains(d):
 	# CHECK SUBDOMAINS
 	#TODO: append subdoms to main domain
 	pass
+
 def answer_to_list(answers):
 	return sorted(list(map(lambda record: str(record).strip(".") if len(str(record).split(' ')) == 1 else str(record).split(' ')[1].strip('.'), answers)))
 
@@ -209,7 +216,9 @@ if __name__ == '__main__':
 
 	parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter,
 		usage="%(prog)s [opt args]\npipelining e.g.: echo \"{'fuzzer': 'Original*', 'domain-name': 'movistar.com'}\" | %(prog)s [opt args]")
-	parser.add_argument('-d','--dictFile',help='e.g.: dict-37tlds.json')
+	onlyOneGroup = parser.add_mutually_exclusive_group()
+	onlyOneGroup.add_argument('-d','--dictFile',help='e.g.: dict-37tlds.json')
+	onlyOneGroup.add_argument('-e','--elastic',metavar='INDEX',help='works on ElasticSearch database')
 	parser.add_argument('-o','--outputFile',help='e.g.: output-37tlds.json')
 	parser.add_argument('-v','--verbose',action='store_true')
 	args = parser.parse_args()
@@ -217,10 +226,12 @@ if __name__ == '__main__':
 	results = []
 	nregs = 0
 
-	if args.dictFile:
-		retrieveDomainsDataFromFile(args.dictFile,args.outputFile,args.verbose)
+	if args.dictFile or args.elastic:
+		if args.elastic:
+			es = Elasticsearch(['http://localhost:9200'])
+		retrieveDomainsDataFromFile(args.dictFile,args.elastic,args.outputFile,args.verbose)
 	else:
-		# GET DNS with DomainThreads (just for PoC)
+		# GET DNS with DomainThreads (just for pipelining-PoC)
 		for line in sys.stdin:
 			domain_str = '{'+line.split('{')[1] # e.g.: domain_str = "{'fuzzer': 'Original*', 'domain-name': 'movistar.com'}"
 			domain = json.loads(domain_str.replace( "'",'"')) # json needs property name enclosed in double quotes
