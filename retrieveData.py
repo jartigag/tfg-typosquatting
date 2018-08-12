@@ -3,8 +3,9 @@
 #author: Javier Artiga Garijo (v0.5)
 #date: 11/08/2018
 #version: 0.5 (get_dns with Domain class)
-#given a dictionary of domains, RETRIEVE DATA of whois, ip, mx records, webs for each domain
-#and classify it as low/high priority + status info.
+#given a dictionary of domains (or pipelining domains), RETRIEVE DATA of:
+#whois, ip, dns/mx records, webs
+#for each domain and classify it as low/high priority + status info.
 #results of each domain are stored in an array of Domain objects with all their collected info.
 #
 #recommended execution: /usr/bin/time -o time.txt python3 retrieveData.py [-d dictFile.json] [-o outputFile.json] [-v] >> logFile.log
@@ -206,7 +207,8 @@ def answer_to_list(answers):
 
 if __name__ == '__main__':
 
-	parser = argparse.ArgumentParser()
+	parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter,
+		usage="%(prog)s [opt args]\npipelining e.g.: echo \"{'fuzzer': 'Original*', 'domain-name': 'movistar.com'}\" | %(prog)s [opt args]")
 	parser.add_argument('-d','--dictFile',help='e.g.: dict-37tlds.json')
 	parser.add_argument('-o','--outputFile',help='e.g.: output-37tlds.json')
 	parser.add_argument('-v','--verbose',action='store_true')
