@@ -1,22 +1,35 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-#author: Javier Artiga Garijo (v0.3)
+#author: Javier Artiga Garijo (v0.4)
 #date: 14/08/2018
-#version: 0.3 (keeps cust_code. doc.id=cust_code)
+#version: 0.4 (insertESBulk added)
 #INSERT data from a file into ELASTICSEARCH
 #
 #usage: insertES.py dataFile.json elasticSearchIndex
 
 import json
-from elasticsearch import Elasticsearch
+from elasticsearch import Elasticsearch, helpers
 import argparse
 
 es = Elasticsearch(['http://localhost:9200'])
 
 def insertES(data,index):
 	es.indices.create(index=index,ignore=400)
-	body = str({'doc':data}).replace( "'",'"')
-	es.index(index=index, doc_type='string', body=body, id=data['customer'])
+	body = str(data).replace( "'",'"')
+	es.index(index=index, doc_type='string', body=body)
+
+def insertESBulk(data,index):
+	es.indices.create(index=index,ignore=400)
+	actions = [
+		{
+			"_index": index,
+			"_type": "domains",
+			"_id": i,
+			"_source": str(data).replace( "'",'"')
+		}
+		for i in range(len(data))
+	]
+	helpers.bulk(es, actions)
 
 if __name__ == '__main__':
 
