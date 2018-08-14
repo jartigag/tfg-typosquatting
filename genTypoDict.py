@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #author: Javier Artiga Garijo (v0.3)
-#date: 12/08/2018
+#date: 14/08/2018
 #version: 0.3 (includes --elastic storage)
 #GENerate a DICTionary of DOMAINS and its TYPOsquatting variations
 #from a list of Official Domains and a list of TLDs
 #
-#usage: genTypoDict.py [-o outputDictFile] [-p | -v] tldsJSONFile domainsDirectory
+#usage: genTypoDict.py [-o outputDictFile] [-e INDEX | -p | -v] tldsJSONFile domainsDirectory
 
 import argparse
 import os
@@ -15,7 +15,7 @@ from dnstwist import DomainFuzz
 from elasticsearch import Elasticsearch
 from insertES import insertES
 
-def genDict(tldsFile,domainsDir,outputDictFile,verbose,pipelining,elasticIndex):
+def genDict(tldsFile,domainsDir,outputDictFile,verbose,piping,elasticIndex):
 	if outputDictFile:
 		outputDictF=open(outputDictFile,'w')
 		print("[",end="",file=outputDictF)
@@ -57,11 +57,11 @@ def genDict(tldsFile,domainsDir,outputDictFile,verbose,pipelining,elasticIndex):
 			e['customer'] = cust_code
 			e['domains'] = fuzzed_doms
 
-			if pipelining:
+			if piping:
 				for d in fuzzed_doms:
 					print(cust_code,d)
 			elif elasticIndex:
-				insertES(fuzzed_doms,elasticIndex)
+				insertES(e,elasticIndex) #TODO: with elasticsearch.helpers.bulk?
 				print(cust_code,fuzzed_doms[0]['domain-name'])
 			elif outputDictFile:
 				# print results as a json to outputDictF:
@@ -87,15 +87,15 @@ if __name__ == '__main__':
 
 	parser = argparse.ArgumentParser()
 	onlyOneGroup = parser.add_mutually_exclusive_group()
-	parser.add_argument('tldsJSONFile',help='e.g.: ccTLDS.json')
+	parser.add_argument('tldsJSONFile',help='e.g.: files/tlds-44.json')
 	parser.add_argument('domainsDirectory',help='e.g.: files/DAT/')
-	parser.add_argument('-o','--outputDictFile',help='e.g.: dict-37tlds.json')
+	parser.add_argument('-o','--outputDictFile',help='e.g.: dict-44tlds.json')
 	onlyOneGroup.add_argument('-e','--elastic',metavar='INDEX',help='store results in ElasticSearch database')
-	onlyOneGroup.add_argument('-p','--pipelining',action='store_true',help='print each result in stdout')
+	onlyOneGroup.add_argument('-p','--piping',action='store_true',help='print each result in stdout')
 	onlyOneGroup.add_argument('-v','--verbose',action='store_true',help='print how many combinations there are')
 	args = parser.parse_args()
 
 	if args.elastic:
 		es = Elasticsearch(['http://localhost:9200'])
 
-	genDict(args.tldsJSONFile,args.domainsDirectory,args.outputDictFile,args.verbose,args.pipelining,args.elastic)
+	genDict(args.tldsJSONFile,args.domainsDirectory,args.outputDictFile,args.verbose,args.piping,args.elastic)
