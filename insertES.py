@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-#author: Javier Artiga Garijo (v0.4)
-#date: 14/08/2018
-#version: 0.4 (insertESBulk added)
+#author: Javier Artiga Garijo (v0.5)
+#date: 16/08/2018
+#version: 0.5 (insertESBulk really working)
 #INSERT data from a file into ELASTICSEARCH
 #
 #usage: insertES.py dataFile.json elasticSearchIndex
@@ -16,20 +16,45 @@ es = Elasticsearch(['http://localhost:9200'])
 def insertES(data,index):
 	es.indices.create(index=index,ignore=400)
 	body = str(data).replace( "'",'"')
-	es.index(index=index, doc_type='string', body=body)
+	es.index(index=index, doc_type='domain', body=body)
 
-def insertESBulk(data,index):
-	es.indices.create(index=index,ignore=400)
-	actions = [
-		{
-			"_index": index,
-			"_type": "domains",
-			"_id": i,
-			"_source": str(data).replace( "'",'"')
-		}
-		for i in range(len(data))
-	]
-	helpers.bulk(es, actions)
+def insertESBulk(documents,index):
+	# (copied from a @julgoor chunk of code)
+	# Split the data into smaller parts
+	parts = []
+	length = 100
+	if len(documents) > length:
+		begin = 0
+		while begin < len(documents):
+			parts.append( documents[begin:begin+length] )
+			begin += length
+	else:
+		parts = [ documents ]
+
+	# Work with each part per separate
+	failed_documents = []
+	for part in parts:
+
+		# Prepare the data
+		bulk_data = []
+		for doc in part:
+
+			data_dict = doc
+
+			op_dict = {
+				"index": {
+					"_index": index,
+					"_type": 'domain'
+				}
+			}
+
+			bulk_data.append(op_dict)
+			bulk_data.append(data_dict)
+	try:
+		es.indices.create(index=index,ignore=400)
+		es.bulk (index=index, body=bulk_data, refresh=True)
+	except Exception as e:
+		print("ElasticSearch ERROR:",e)
 
 if __name__ == '__main__':
 

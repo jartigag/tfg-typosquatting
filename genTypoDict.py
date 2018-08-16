@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-#author: Javier Artiga Garijo (v0.4)
-#date: 14/08/2018
-#version: 0.4 (elastic, reallyVerbose)
+#author: Javier Artiga Garijo (v0.5)
+#date: 16/08/2018
+#version: 0.5 (elastic with insertESBulk)
 #GENerate a DICTionary of DOMAINS and its TYPOsquatting variations
 #from a list of Official Domains and a list of TLDs
 #
@@ -21,8 +21,8 @@ def genDict(tldsFile,domainsDir,outputDictFile,verbose,reallyVerbose,piping,elas
 	if outputDictFile:
 		outputDictF=open(outputDictFile,'w')
 		print("[",end="",file=outputDictF)
-	# elif elasticIndex:
-	# 	results = [] # for insertESBulk
+	elif elasticIndex:
+		results = [] # for insertESBulk
 	doms = []
 	tlds = json.load(open(tldsFile))
 
@@ -67,8 +67,8 @@ def genDict(tldsFile,domainsDir,outputDictFile,verbose,reallyVerbose,piping,elas
 				for d in fuzzed_doms:
 					print(cust_code,d)
 			elif elasticIndex:
-				insertES(e,elasticIndex)
-				#results.append(e) # for insertESBulk
+				#insertES(e,elasticIndex)
+				results.append(e) # for insertESBulk
 				if reallyVerbose:
 					print(fuzzed_doms[0]['domain-name'],end=",",flush=True)
 			elif outputDictFile:
@@ -90,10 +90,10 @@ def genDict(tldsFile,domainsDir,outputDictFile,verbose,reallyVerbose,piping,elas
 
 	if outputDictFile:
 		print("]",file=outputDictF)
-	# elif elasticIndex:
-	# 	print("inserting into ES with bulk api..")
-	# 	insertESBulk(results,elasticIndex)
-	# 	print("done.")
+	elif elasticIndex:
+		print("inserting into ES with bulk api..")
+		insertESBulk(results,elasticIndex)
+		print("done.")
 
 if __name__ == '__main__':
 
