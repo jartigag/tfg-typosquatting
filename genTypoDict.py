@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #author: Javier Artiga Garijo (v0.5)
-#date: 16/08/2018
-#version: 0.5 (elastic with insertESBulk)
+#date: 17/08/2018
+#version: 0.5 (elastic with insertESBulk for each customer)
 #GENerate a DICTionary of DOMAINS and its TYPOsquatting variations
 #from a list of Official Domains and a list of TLDs
 #
@@ -77,7 +77,13 @@ def genDict(tldsFile,domainsDir,outputDictFile,verbose,reallyVerbose,piping,elas
 				#TODO: avoid to remove last "," manually
 
 		if verbose:
-			print("\n%i - %s 	%i doms (%i combs, %i vars)" % (i,cust_code,len(ds),len(ds)*len(tlds),nvars))
+			print("\n%i - %s 	%i doms (%i combs, %i vars)" % (i,cust_code,len(ds),len(combs),nvars))
+
+		if elasticIndex:
+			print("inserting into ES with bulk api..")
+			insertESBulk(results,elasticIndex)
+			print("done.")
+			results = []
 
 		ndoms+=len(ds)
 		ncombs+=len(ds)*len(tlds)
@@ -90,10 +96,6 @@ def genDict(tldsFile,domainsDir,outputDictFile,verbose,reallyVerbose,piping,elas
 
 	if outputDictFile:
 		print("]",file=outputDictF)
-	elif elasticIndex:
-		print("inserting into ES with bulk api..")
-		insertESBulk(results,elasticIndex)
-		print("done.")
 
 if __name__ == '__main__':
 

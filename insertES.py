@@ -50,11 +50,11 @@ def insertESBulk(documents,index):
 
 			bulk_data.append(op_dict)
 			bulk_data.append(data_dict)
-	try:
-		es.indices.create(index=index,ignore=400)
-		es.bulk (index=index, body=bulk_data, refresh=True)
-	except Exception as e:
-		print("ElasticSearch ERROR:",e)
+		try:
+			es.indices.create(index=index,ignore=400)
+			es.bulk (index=index, body=bulk_data, refresh=True)
+		except Exception as e:
+			print("ElasticSearch ERROR:",e)
 
 if __name__ == '__main__':
 
