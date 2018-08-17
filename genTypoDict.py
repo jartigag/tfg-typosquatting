@@ -6,7 +6,7 @@
 #GENerate a DICTionary of DOMAINS and its TYPOsquatting variations
 #from a list of Official Domains and a list of TLDs
 #
-#usage: genTypoDict.py [-o outputDictFile] [-e INDEX | -p ] [-v] tldsJSONFile domainsDirectory
+#usage: genTypoDict.py [-o outputDictFile] [-e INDEX | -E INDEX | -p ] [-v] tldsJSONFile domainsDirectory
 
 import argparse
 import os
@@ -15,13 +15,13 @@ from dnstwist import DomainFuzz
 from elasticsearch import Elasticsearch
 from insertES import insertES, insertESBulk
 
-def genDict(tldsFile,domainsDir,outputDictFile,verbose,reallyVerbose,piping,elasticIndex):
+def genDict(tldsFile,domainsDir,outputDictFile,verbose,reallyVerbose,piping,elasticIndexDom,elasticIndexCust):
 	if reallyVerbose:
 		verbose=True
 	if outputDictFile:
 		outputDictF=open(outputDictFile,'w')
 		print("[",end="",file=outputDictF)
-	elif elasticIndex:
+	elif elasticIndexCust or elasticIndexDom:
 		results = [] # for insertESBulk
 	doms = []
 	tlds = json.load(open(tldsFile))
@@ -66,8 +66,9 @@ def genDict(tldsFile,domainsDir,outputDictFile,verbose,reallyVerbose,piping,elas
 			if piping:
 				for d in fuzzed_doms:
 					print(cust_code,d)
-			elif elasticIndex:
-				#insertES(e,elasticIndex)
+			elif elasticIndexDom:
+				insertES(e,elasticIndexDom)
+			elif elasticIndexCust:
 				results.append(e) # for insertESBulk
 				if reallyVerbose:
 					print(fuzzed_doms[0]['domain-name'],end=",",flush=True)
@@ -79,9 +80,9 @@ def genDict(tldsFile,domainsDir,outputDictFile,verbose,reallyVerbose,piping,elas
 		if verbose:
 			print("\n%i - %s 	%i doms (%i combs, %i vars)" % (i,cust_code,len(ds),len(combs),nvars))
 
-		if elasticIndex:
-			print("inserting into ES with bulk api..")
-			insertESBulk(results,elasticIndex)
+		if elasticIndexCust:
+			print("inserting %s into ES with bulk api.."%(cust_code))
+			insertESBulk(results,elasticIndexCust)
 			print("done.")
 			results = []
 
@@ -104,7 +105,8 @@ if __name__ == '__main__':
 	parser.add_argument('tldsJSONFile',help='e.g.: files/tlds-44.json')
 	parser.add_argument('domainsDirectory',help='e.g.: files/DAT/')
 	parser.add_argument('-o','--outputDictFile',help='e.g.: dict-44tlds.json')
-	onlyOneGroup.add_argument('-e','--elastic',metavar='INDEX',help='store results in ElasticSearch database')
+	onlyOneGroup.add_argument('-e','--elastic',metavar='INDEX',help='insert results (one domain at once) into ES')
+	onlyOneGroup.add_argument('-E','--Elastic',metavar='INDEX',help='insert results (one customer at once) into ES')
 	onlyOneGroup.add_argument('-p','--piping',action='store_true',help='print each result in stdout')
 	parser.add_argument('-v','--verbose',action='store_true',help='print how many combinations there are')
 	parser.add_argument('-V','--reallyVerbose',action='store_true',help='print each combination')
@@ -113,4 +115,4 @@ if __name__ == '__main__':
 	if args.elastic:
 		es = Elasticsearch(['http://localhost:9200'])
 
-	genDict(args.tldsJSONFile,args.domainsDirectory,args.outputDictFile,args.verbose,args.reallyVerbose,args.piping,args.elastic)
+	genDict(args.tldsJSONFile,args.domainsDirectory,args.outputDictFile,args.verbose,args.reallyVerbose,args.piping,args.elastic,args.Elastic)
