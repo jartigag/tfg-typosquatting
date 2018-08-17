@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-#author: Javier Artiga Garijo (v0.5)
-#date: 11/08/2018
-#version: 0.5 (get_dns with Domain class)
-#given a dictionary of domains (or pipelining domains), RETRIEVE DATA of:
+#author: Javier Artiga Garijo (v0.6)
+#date: 15/08/2018
+#version: 0.6 (elastic)
+#given a dictionary of domains (from a file, from elasticsearch or piping it), RETRIEVE DATA of:
 #whois, ip, dns/mx records, webs
 #for each domain and classify it as low/high priority + status info.
 #results of each domain are stored in an array of Domain objects with all their collected info.
 #
-#recommended execution: /usr/bin/time -o time.txt python3 retrieveData.py [-d dictFile.json] [-o outputFile.json] [-v] >> logFile.log
+#recommended execution: /usr/bin/time -o time.txt python3 retrieveData.py [-d dictFile.json | -e INDEX] [-o outputFile.json] [-v] >> logFile.log
 
 import argparse
 from datetime import date, timedelta, datetime
@@ -21,6 +21,8 @@ from requests.packages.urllib3.exceptions import InsecureRequestWarning
 import socket
 import json
 import sys
+from elasticsearch import Elasticsearch, helpers
+from insertES import insertES, insertESBulk
 
 REQUEST_TIMEOUT_DNS = 5
 
@@ -55,30 +57,31 @@ def convertDatetime(date):
 	else:
 		return False
 
-def retrieveDomainsDataFromFile(dictFile,outputFile,verbose):
+def retrieveDomainsDataFromFile(dictFile,elasticIndex,outputFile,verbose):
 	if outputFile:
 		outputF=open(outputFile,'w')
 		print("[",end="",file=outputF)
-	data = json.load(open(dictFile)) #FIXME: MemoryError
+	if dictFile:
+		data = json.load(open(dictFile))
+	elif elasticIndex:
+		data = list(helpers.scan(es,index=elasticIndex, preserve_order=True, query={"query": {"match": {"_index": elasticIndex}}}))
 	#data = data[0:1] ## PARA PRUEBA CORTA
 	for e in data:
-		for dom in e['domains']:
+		if dictFile:
+			edoms = e
+		elif elasticIndex:
+			edoms = e['_source']
+		for dom in edoms['domains']:
 			d = Domain()
 			d.domain = dom['domain-name']
-			d.customer = e['customer']
-
-			get_dns(d)
+			d.customer = edoms['customer']
 
 			start_time = time()
-			# check_whois(d)
-			# get_ip(d)
-			# get_mx(d)
-			# check_web(d)
-			#check_subomains(d)
+			get_dns(d)#; check_whois(d); get_ip(d); check_web(d); check_subomains(d)
 			end_time = time()
 
 			if verbose:
-				print("cust%i - [%i/%i]"%(data.index(e)+1,e['domains'].index(dom)+1,len(e['domains'])),
+				print("cust%i - [%i/%i]"%(data.index(e)+1,edoms['domains'].index(dom)+1,len(edoms['domains'])),
 					"[-]" if d.ip==[] else "[x]",
 					"%s %s"%(d.customer,d.domain),
 					"(%.2f secs)"%(end_time-start_time))
@@ -87,6 +90,10 @@ def retrieveDomainsDataFromFile(dictFile,outputFile,verbose):
 				# print results as a json to outputF:
 				print(json.dumps(d, indent=2, sort_keys=True),end=",\n",file=outputF)
 				#TODO: avoid to remove last "," manually
+			elif elasticIndex:
+				#WIP: store results in ES. FIXME: dns fields are all void
+				insertES(d.__dict__,'retrieve_data')
+				print(d.domain,"inserted")
 
 	if outputFile:
 		print("]",file=outputF)
@@ -113,8 +120,6 @@ def check_whois(d):
 			d.priority = 'low'
 			d.status = 'parked'
 	except:
-		#TODO: sometimes it fails because whois parses the result wrongly
-		#(ej: "ValueError: Unknown date format: 'registrar: the registrar, s.l.u'")
 		#domain doesn't resolve:
 		if datetime.now()-timedelta(seconds=200) <= convertDatetime(d.reg_date):
 			#not registered (because reg_date is now, with a margin of 200 secs):
@@ -141,15 +146,6 @@ def get_ip(d):
 	except:
 		pass
 
-def get_mx(d):
-	# GET MX RECORDS
-	try:
-		ans = dns.resolver.query(d.domain, 'MX')
-		#for rdata in sorted(ans):
-		d.mx.append(answer_to_list(ans))
-	except:
-		pass
-
 def get_dns(d):
 	resolv = dns.resolver.Resolver()
 	resolv.lifetime = REQUEST_TIMEOUT_DNS
@@ -163,21 +159,21 @@ def get_dns(d):
 
 	if d.ns!=[]:
 		try:
-			ans = resolv.query(domain['domain-name'], 'A')
+			ans = resolv.query(d.domain, 'A')
 			#for rdata in sorted(ans):
 			d.a.append(answer_to_list(ans))
 		except DNSException:
 			pass
 
 		try:
-			ans = resolv.query(domain['domain-name'], 'AAAA')
+			ans = resolv.query(d.domain, 'AAAA')
 			#for rdata in sorted(ans):
 			d.aaaa.append(answer_to_list(ans))
 		except DNSException:
 			pass
 
 		try:
-			ans = resolv.query(domain['domain-name'], 'MX')
+			ans = resolv.query(d.domain, 'MX')
 			#for rdata in sorted(ans):
 			d.mx.append(answer_to_list(ans))
 		except DNSException:
@@ -202,6 +198,7 @@ def check_subdomains(d):
 	# CHECK SUBDOMAINS
 	#TODO: append subdoms to main domain
 	pass
+
 def answer_to_list(answers):
 	return sorted(list(map(lambda record: str(record).strip(".") if len(str(record).split(' ')) == 1 else str(record).split(' ')[1].strip('.'), answers)))
 
@@ -209,7 +206,9 @@ if __name__ == '__main__':
 
 	parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter,
 		usage="%(prog)s [opt args]\npipelining e.g.: echo \"{'fuzzer': 'Original*', 'domain-name': 'movistar.com'}\" | %(prog)s [opt args]")
-	parser.add_argument('-d','--dictFile',help='e.g.: dict-37tlds.json')
+	onlyOneGroup = parser.add_mutually_exclusive_group()
+	onlyOneGroup.add_argument('-d','--dictFile',help='e.g.: dict-37tlds.json')
+	onlyOneGroup.add_argument('-e','--elastic',metavar='INDEX',help='works on ElasticSearch database')
 	parser.add_argument('-o','--outputFile',help='e.g.: output-37tlds.json')
 	parser.add_argument('-v','--verbose',action='store_true')
 	args = parser.parse_args()
@@ -217,10 +216,12 @@ if __name__ == '__main__':
 	results = []
 	nregs = 0
 
-	if args.dictFile:
-		retrieveDomainsDataFromFile(args.dictFile,args.outputFile,args.verbose)
+	if args.dictFile or args.elastic:
+		if args.elastic:
+			es = Elasticsearch(['http://localhost:9200'])
+		retrieveDomainsDataFromFile(args.dictFile,args.elastic,args.outputFile,args.verbose)
 	else:
-		# GET DNS with DomainThreads (just for PoC)
+		# GET DNS with DomainThreads (just for piping-PoC)
 		for line in sys.stdin:
 			domain_str = '{'+line.split('{')[1] # e.g.: domain_str = "{'fuzzer': 'Original*', 'domain-name': 'movistar.com'}"
 			domain = json.loads(domain_str.replace( "'",'"')) # json needs property name enclosed in double quotes
