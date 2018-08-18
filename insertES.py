@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-#author: Javier Artiga Garijo (v0.5)
-#date: 16/08/2018
-#version: 0.5 (insertESBulk really working)
+#author: Javier Artiga Garijo (v0.6)
+#date: 18/08/2018
+#version: 0.6 (getESBulk)
 #INSERT data from a file into ELASTICSEARCH
 #
 #usage: insertES.py dataFile.json elasticSearchIndex
@@ -19,7 +19,7 @@ def insertES(data,index):
 	es.index(index=index, doc_type='domain', body=body)
 
 def insertESBulk(documents,index):
-	# (copied from a @julgoor chunk of code)
+	# (copied from a @julgoor's chunk of code)
 	# Split the data into smaller parts
 	parts = []
 	length = 100
@@ -55,6 +55,10 @@ def insertESBulk(documents,index):
 			es.bulk (index=index, body=bulk_data, refresh=True)
 		except Exception as e:
 			print("ElasticSearch ERROR:",e)
+
+def getESBulk(documents,index):
+	#WIP: this, but batching the results
+	#data = list(helpers.scan(es,index=elasticIndex, preserve_order=True, query={"query": {"match": {"_index": elasticIndex}}}))
 
 if __name__ == '__main__':
 

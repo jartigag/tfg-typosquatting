@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #author: Javier Artiga Garijo (v0.6)
-#date: 15/08/2018
-#version: 0.6 (elastic)
+#date: 18/08/2018
+#version: 0.6 (--elastic and --insertElastic)
 #given a dictionary of domains (from a file, from elasticsearch or piping it), RETRIEVE DATA of:
 #whois, ip, dns/mx records, webs
 #for each domain and classify it as low/high priority + status info.
 #results of each domain are stored in an array of Domain objects with all their collected info.
 #
-#recommended execution: /usr/bin/time -o time.txt python3 retrieveData.py [-d dictFile.json | -e INDEX] [-o outputFile.json] [-v] >> logFile.log
+#recommended execution: /usr/bin/time -o time.txt python3 retrieveData.py [-d dictFile.json | -e GetINDEX] [-o outputFile.json | -i InsertINDEX] [-v] >> logFile.log
 
 import argparse
 from datetime import date, timedelta, datetime
@@ -22,7 +22,7 @@ import socket
 import json
 import sys
 from elasticsearch import Elasticsearch, helpers
-from insertES import insertES, insertESBulk
+from insertES import insertES, getESBulk
 
 REQUEST_TIMEOUT_DNS = 5
 
@@ -57,19 +57,20 @@ def convertDatetime(date):
 	else:
 		return False
 
-def retrieveDomainsDataFromFile(dictFile,elasticIndex,outputFile,verbose):
+def retrieveDomainsData(dictFile,elasticGetIndex,elasticInsertIndex,outputFile,verbose):
 	if outputFile:
 		outputF=open(outputFile,'w')
 		print("[",end="",file=outputF)
 	if dictFile:
 		data = json.load(open(dictFile))
-	elif elasticIndex:
-		data = list(helpers.scan(es,index=elasticIndex, preserve_order=True, query={"query": {"match": {"_index": elasticIndex}}}))
+	elif elasticGetIndex:
+		data = list(helpers.scan(es,index=elasticGetIndex, preserve_order=True, query={"query": {"match": {"_index": elasticGetIndex}}}))
+		#getESBulk()
 	#data = data[0:1] ## PARA PRUEBA CORTA
 	for e in data:
 		if dictFile:
 			edoms = e
-		elif elasticIndex:
+		elif elasticGetIndex:
 			edoms = e['_source']
 		for dom in edoms['domains']:
 			d = Domain()
@@ -90,11 +91,9 @@ def retrieveDomainsDataFromFile(dictFile,elasticIndex,outputFile,verbose):
 				# print results as a json to outputF:
 				print(json.dumps(d, indent=2, sort_keys=True),end=",\n",file=outputF)
 				#TODO: avoid to remove last "," manually
-			elif elasticIndex:
+			elif elasticInsertIndex:
 				#WIP: store results in ES. FIXME: dns fields are all void
-				insertES(d.__dict__,'retrieve_data')
-				print(d.domain,"inserted")
-
+				insertES(d.__dict__,elasticInsertIndex)
 	if outputFile:
 		print("]",file=outputF)
 
@@ -208,8 +207,9 @@ if __name__ == '__main__':
 		usage="%(prog)s [opt args]\npipelining e.g.: echo \"{'fuzzer': 'Original*', 'domain-name': 'movistar.com'}\" | %(prog)s [opt args]")
 	onlyOneGroup = parser.add_mutually_exclusive_group()
 	onlyOneGroup.add_argument('-d','--dictFile',help='e.g.: dict-37tlds.json')
-	onlyOneGroup.add_argument('-e','--elastic',metavar='INDEX',help='works on ElasticSearch database')
+	onlyOneGroup.add_argument('-e','--elastic',metavar='INDEX',help='get data from ES')
 	parser.add_argument('-o','--outputFile',help='e.g.: output-37tlds.json')
+	parser.add_argument('-i','--insertElastic',metavar='INDEX',help='insert results (one domain at once) into ES')
 	parser.add_argument('-v','--verbose',action='store_true')
 	args = parser.parse_args()
 
@@ -219,7 +219,7 @@ if __name__ == '__main__':
 	if args.dictFile or args.elastic:
 		if args.elastic:
 			es = Elasticsearch(['http://localhost:9200'])
-		retrieveDomainsDataFromFile(args.dictFile,args.elastic,args.outputFile,args.verbose)
+		retrieveDomainsData(args.dictFile,args.elastic,args.insertElastic,args.outputFile,args.verbose)
 	else:
 		# GET DNS with DomainThreads (just for piping-PoC)
 		for line in sys.stdin:
@@ -231,7 +231,7 @@ if __name__ == '__main__':
 
 			get_dns(d)
 			results.append(d)
-	
+
 			if args.verbose:
 				if d.ns!=[]:
 					print("REGISTERED!",d.domain)
