@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #author: Javier Artiga Garijo (v0.6)
-#date: 18/08/2018
-#version: 0.6 (getESBulk)
+#date: 21/08/2018
+#version: 0.6 (getESDocs)
 #INSERT data from a file into ELASTICSEARCH
 #
 #usage: insertES.py dataFile.json elasticSearchIndex
@@ -10,6 +10,7 @@
 import json
 from elasticsearch import Elasticsearch, helpers
 import argparse
+import requests
 
 es = Elasticsearch(['http://localhost:9200'])
 
@@ -19,7 +20,7 @@ def insertES(data,index):
 	es.index(index=index, doc_type='domain', body=body)
 
 def insertESBulk(documents,index):
-	# (copied from a @julgoor's chunk of code)
+	# (from a @julgoor's chunk of code)
 	# Split the data into smaller parts
 	parts = []
 	length = 100
@@ -56,9 +57,38 @@ def insertESBulk(documents,index):
 		except Exception as e:
 			print("ElasticSearch ERROR:",e)
 
-def getESBulk(documents,index):
-	#WIP: this, but batching the results
-	#data = list(helpers.scan(es,index=elasticIndex, preserve_order=True, query={"query": {"match": {"_index": elasticIndex}}}))
+def getESDocs(index, customer):
+	# (from a @julgoor's chunk of code)
+	### Prepare the query
+	body = {"query": {"match": {"customer": {"query": customer}}},"size": 500}
+	# Launch the initial query
+	results = es_search_scroll(index, body)
+	# Clean the results
+	documents = []
+	if 'hits' in results and 'hits' in results['hits']:
+		while results['hits']['hits']:
+			documents.extend(results['hits']['hits'])
+			results = es_search_scroll(index, scroll_id=results['_scroll_id'])
+	return [ p["_source"] for p in documents ]
+
+def es_search_scroll(index, body=None, scroll_id=None, scroll_duration="1m"):
+	# (from a @julgoor's chunk of code)
+	'''Launch a query directly to ES'''
+	# Prepare the URL and the body depending on the first call or other
+	url = ""
+	if body and scroll_duration:
+		url = 'http://localhost:9200/' + index + "/_search?scroll=%s" % scroll_duration
+		body['size'] = 500
+	else:
+		if scroll_id and scroll_duration:
+			url = 'http://localhost:9200/' + "_search/scroll"
+			body = {
+				"scroll" : scroll_duration,
+				"scroll_id": scroll_id
+			}
+	# Launch the query and returns the results
+	r = requests.post( url, json=body )
+	return json.loads( r.text )
 
 if __name__ == '__main__':
 
