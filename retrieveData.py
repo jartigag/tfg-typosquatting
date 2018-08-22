@@ -43,7 +43,7 @@ class Domain:
 		self.webs = [] # https reqs
 		self.domain = ''
 		self.subdomains = '' #TODO
-		self.test_freq = ''
+		self.test_freq = '0'
 		self.generation = '' #TODO
 		self.customer = ''
 		self.priority = ''
@@ -70,7 +70,6 @@ def retrieveDomainsData(customersDomainsDirectory,dictFile,elasticGetIndex,elast
 		data = json.load(open(dictFile))
 	elif elasticGetIndex:
 		data = [] # in this array goes the initial data, each customer at once
-		results = [] # for insertESBulk
 		if verbose:
 			print("loading data from ES...")
 		custList = custList[:1] ## PARA PRUEBA CORTA
@@ -85,6 +84,7 @@ def retrieveDomainsData(customersDomainsDirectory,dictFile,elasticGetIndex,elast
 	dataPos = 1
 	lastCustCode = data[0]['customer']
 	for e in data:
+		results = [] # for insertESBulk
 		for dom in e['domains']:
 			d = Domain()
 			d.domain = dom['domain-name']
@@ -137,8 +137,8 @@ def check_whois(d):
 			d.status = 'parked'
 	except:
 		#domain doesn't resolve:
-		if datetime.now()-timedelta(seconds=200) <= convertDatetime(d.reg_date):
-			#not registered (because reg_date is now, with a margin of 200 secs):
+		if convertDatetime(d.reg_date) > datetime.now()-timedelta(seconds=200): #"now", with a margin of 200 secs
+			#not registered (because reg_date is now):
 			d.priority = 'low'
 			d.status = 'very low priority'
 		elif convertDatetime(d.reg_date) > datetime.now()-timedelta(days=7):
