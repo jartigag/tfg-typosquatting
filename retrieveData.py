@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #author: Javier Artiga Garijo (v0.6)
-#date: 21/08/2018
+#date: 22/08/2018
 #version: 0.6 (--elastic and --insertElastic)
 #given a dictionary of domains (from a file, from elasticsearch or piping it), RETRIEVE DATA of:
 #whois, ip, dns/mx records, webs
@@ -22,7 +22,7 @@ import socket
 import json
 import sys
 from elasticsearch import Elasticsearch, helpers
-from insertES import insertES, getESDocs
+from insertES import insertESBulk, getESDocs
 import os
 
 REQUEST_TIMEOUT_DNS = 5
@@ -69,33 +69,35 @@ def retrieveDomainsData(customersDomainsDirectory,dictFile,elasticGetIndex,elast
 	if dictFile:
 		data = json.load(open(dictFile))
 	elif elasticGetIndex:
-		data = []
+		data = [] # in this array goes the initial data, each customer at once
+		results = [] # for insertESBulk
 		if verbose:
 			print("loading data from ES...")
-		for custCode in custList[:1]: ## PARA PRUEBA CORTA
+		custList = custList[:1] ## PARA PRUEBA CORTA
+		for custCode in custList:
 			data = getESDocs(elasticGetIndex,custCode)
 			if verbose:
 				print(custCode,"loaded")
 		if verbose:
 			print("all data loaded.")
 	#data = data[0:1] ## PARA PRUEBA CORTA
+	# just for printing progress:
+	dataPos = 1
+	lastCustCode = data[0]['customer']
 	for e in data:
-		dataPos = data.index(e)+1 # just for printing progress
-		if dictFile:
-			edoms = e
-		elif elasticGetIndex:
-			edoms = e
-		for dom in edoms['domains']:
+		for dom in e['domains']:
 			d = Domain()
 			d.domain = dom['domain-name']
-			d.customer = edoms['customer']
+			d.customer = e['customer']
+			if e['customer']!= lastCustCode:
+				dataPos+=1
 
 			start_time = time()
 			get_dns(d)#; check_whois(d); get_ip(d); check_web(d); check_subomains(d)
 			end_time = time()
 
 			if verbose:
-				print("cust%i - [%i/%i]"%(dataPos,edoms['domains'].index(dom)+1,len(edoms['domains'])),
+				print("cust%i - [%i/%i]"%(dataPos,e['domains'].index(dom)+1,len(e['domains'])),
 					"[-]" if d.ip==[] else "[x]",
 					"%s %s"%(d.customer,d.domain),
 					"(%.2f secs)"%(end_time-start_time))
@@ -105,8 +107,10 @@ def retrieveDomainsData(customersDomainsDirectory,dictFile,elasticGetIndex,elast
 				print(json.dumps(d, indent=2, sort_keys=True),end=",\n",file=outputF)
 				#TODO: avoid to remove last "," manually
 			elif elasticInsertIndex:
-				#WIP: store results in ES. FIXME: dns fields are all void
-				insertES(d.__dict__,elasticInsertIndex)
+				results.append(d.__dict__)
+				#insertESBulk(d.__dict__,elasticInsertIndex)
+		if elasticInsertIndex:
+			insertESBulk(results,elasticInsertIndex)
 	if outputFile:
 		print("]",file=outputF)
 

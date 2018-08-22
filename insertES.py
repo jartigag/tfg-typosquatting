@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #author: Javier Artiga Garijo (v0.6)
-#date: 21/08/2018
+#date: 22/08/2018
 #version: 0.6 (getESDocs)
 #INSERT data from a file into ELASTICSEARCH
 #
@@ -52,7 +52,6 @@ def insertESBulk(documents,index):
 			bulk_data.append(op_dict)
 			bulk_data.append(data_dict)
 		try:
-			es.indices.create(index=index,ignore=400)
 			es.bulk (index=index, body=bulk_data, refresh=True)
 		except Exception as e:
 			print("ElasticSearch ERROR:",e)
