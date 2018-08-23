@@ -8,7 +8,7 @@
 #for each domain and classify it as low/high priority + status info.
 #results of each domain are stored in an array of Domain objects with all their collected info.
 #
-#recommended execution: /usr/bin/time -o time.txt python3 retrieveData.py customersDomainsDirectory [-d dictFile.json | -e GetINDEX] [-o outputFile.json | -i InsertINDEX] [-v] >> logFile.log
+#recommended execution: /usr/bin/time -o time.txt python3 retrieveData.py custCode [-d dictFile.json | -e GetINDEX] [-o outputFile.json | -i InsertINDEX] [-v] >> logFile.log
 
 import argparse
 from datetime import date, timedelta, datetime
@@ -58,48 +58,31 @@ def convertDatetime(date):
 	else:
 		return False
 
-def retrieveDomainsData(customersDomainsDirectory,dictFile,elasticGetIndex,elasticInsertIndex,outputFile,verbose):
-	custList = []
-	for c in os.listdir(customersDomainsDirectory):
-		custList.append(c.split('_-_')[0]) # customer code
-
+def retrieveDomainsData(custCode,dictFile,elasticGetIndex,elasticInsertIndex,outputFile,verbose):
 	if outputFile:
 		outputF=open(outputFile,'w')
 		print("[",end="",file=outputF)
 	if dictFile:
 		data = json.load(open(dictFile))
 	elif elasticGetIndex:
-		data = [] # in this array goes the initial data, each customer at once
+		data = getESDocs(elasticGetIndex,custCode)
 		if verbose:
-			print("loading data from ES...")
-		custList = custList[:1] ## PARA PRUEBA CORTA
-		for custCode in custList:
-			data = getESDocs(elasticGetIndex,custCode)
-			if verbose:
-				print(custCode,"loaded")
-		if verbose:
-			print("all data loaded.")
+			print(custCode,"loaded")
 	#data = data[0:1] ## PARA PRUEBA CORTA
-	# just for printing progress:
-	dataPos = 1
-	lastCustCode = data[0]['customer']
 	for e in data:
 		results = [] # for insertESBulk
 		for dom in e['domains']:
 			d = Domain()
 			d.domain = dom['domain-name']
 			d.customer = e['customer']
-			if e['customer']!= lastCustCode:
-				dataPos+=1
-
 			start_time = time()
 			get_dns(d)#; check_whois(d); get_ip(d); check_web(d); check_subomains(d)
 			end_time = time()
 
 			if verbose:
-				print("cust%i - [%i/%i]"%(dataPos,e['domains'].index(dom)+1,len(e['domains'])),
+				print("%s - [%i/%i]"%(custCode,e['domains'].index(dom)+1,len(e['domains'])),
 					"[-]" if d.ip==[] else "[x]",
-					"%s %s"%(d.customer,d.domain),
+					d.domain,
 					"(%.2f secs)"%(end_time-start_time))
 
 			if outputFile:
@@ -222,7 +205,7 @@ if __name__ == '__main__':
 
 	parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter,
 		usage="%(prog)s [opt args]\npipelining e.g.: echo \"{'fuzzer': 'Original*', 'domain-name': 'movistar.com'}\" | %(prog)s [opt args]")
-	parser.add_argument('customersDomainsDirectory',help='e.g.: files/DAT/')
+	parser.add_argument('custCode',help='TEF_ES (usually extracted by multiRetrDat.sh)')
 	onlyOneGroup = parser.add_mutually_exclusive_group()
 	onlyOneGroup.add_argument('-d','--dictFile',help='e.g.: dict-37tlds.json')
 	onlyOneGroup.add_argument('-e','--elastic',metavar='INDEX',help='get data from ES')
@@ -237,7 +220,7 @@ if __name__ == '__main__':
 	if args.dictFile or args.elastic:
 		if args.elastic:
 			es = Elasticsearch(['http://localhost:9200'])
-		retrieveDomainsData(args.customersDomainsDirectory,args.dictFile,args.elastic,args.insertElastic,args.outputFile,args.verbose)
+		retrieveDomainsData(args.custCode,args.dictFile,args.elastic,args.insertElastic,args.outputFile,args.verbose)
 	else:
 		# GET DNS with DomainThreads (just for piping-PoC)
 		for line in sys.stdin:
