@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #author: Javier Artiga Garijo
-#date: 18/08/2018
-#version: 0.2 (UrlParser)
-# remove invalid domains and duplicates from the official domains .xls files and dump results
+#date: 24/08/2018
+#version: 1.0
+# remove invalid domains and duplicates from the official domains .csv files and dump results
 
 #usage: sanitizeDoms.py directory
 
@@ -41,16 +41,26 @@ def check_invalids():
 	print("\033[1minvalid domain(s)\033[0m:")
 	for customer_doms in doms:
 		pos = doms.index(customer_doms)
+		someInvalid = False #flag to know if a linebreak at the end of the costumer must be printed
 		for d in customer_doms:
 			d_pos = customer_doms.index(d)
 			try:
 				decoded_d = d.encode('idna').decode('idna')
 				UrlParser(decoded_d)
 			except ValueError as err:
-				print('%s (%s, %i)' % (decoded_d,files[pos],d_pos),end=", ")
-				#FIXME: domains as 'elcorteinglés.es' or 'ganasdeotoño.com' raise as invalids.
-				#del doms[pos][d_pos]
+				if someInvalid==False:
+					print(files[pos],end=": ")
+				print('%s (%i)' % (decoded_d,d_pos),end=", ")
+				someInvalid = True
+				del doms[pos][d_pos]
+			if someInvalid and d_pos==len(customer_doms)-1: print() #linebreak
 		final_ndoms += len(customer_doms)
+
+def dump_data():
+	for customer_doms in doms:
+		pos = doms.index(customer_doms)
+		f = open(files[pos].replace('.csv','.dat'),'w+')
+		print(customer_doms,file=f)
 
 if __name__ == '__main__':
 
@@ -63,3 +73,4 @@ if __name__ == '__main__':
 	check_dups()
 	check_invalids()
 	print("\n\n>> \033[1m%s\033[0m domains (after checking):"%(final_ndoms),"(%i less)\n"%(initial_ndoms-final_ndoms))
+	dump_data()

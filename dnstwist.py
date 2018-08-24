@@ -115,7 +115,6 @@ else:
 	ST_BRI = ''
 	ST_RST = ''
 
-
 def p_cli(data):
 	global args
 	if not args.csv and not args.json:
@@ -207,7 +206,7 @@ class UrlParser():
 			return False
 		if domain[-1] == '.':
 			domain = domain[:-1]
-		allowed = re.compile('\A([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}\Z', re.IGNORECASE)
+		allowed = re.compile('\A([a-z0-9ñáéíóú\s]+(-[a-z0-9ñáéíóú\s]+)*\.)+[a-zñáéíóú\s]{2,}\Z', re.IGNORECASE) #ñ and tilde added
 		return allowed.match(domain)
 
 	def get_full_uri(self):
@@ -788,6 +787,7 @@ def generate_json(domains):
 	for domain in json_domains:
 		domain['domain-name'] = domain['domain-name'].lower().encode('idna')
 		domain['fuzzer'] = domain['fuzzer'].lower()
+		domain['timestamp'] = convertDatetime(datetime.now())
 
 	return json.dumps(json_domains, indent=4, sort_keys=True)
 
