@@ -16,8 +16,16 @@ es = Elasticsearch(['http://localhost:9200'])
 
 def insertES(data,index):
 	es.indices.create(index=index,ignore=400)
-	body = str(data).replace( "'",'"')
-	es.index(index=index, doc_type='domain', body=body)
+	#body = str(data).replace( "'",'"')
+	for d in data:
+		body = '{"doc": {'
+		l = list(d)
+		for i in l:
+			if not l.index(i)==len(l)-1:
+				body+='"'+i+'":"'+str(d[i])+'",'
+			else:
+				body+='"'+i+'":"'+str(d[i])+'"}}'
+		es.index(index=index, doc_type='domain', body=body)
 
 def insertESBulk(documents,index):
 	# (from a @julgoor's chunk of code)
@@ -98,4 +106,4 @@ if __name__ == '__main__':
 
 	data = json.load(open(args.dataFile))
 	index = args.elasticSearchIndex
-	insertES(data,index)
+	insertESBulk(data,index)
