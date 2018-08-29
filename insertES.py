@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-#author: Javier Artiga Garijo (v0.6)
-#date: 22/08/2018
-#version: 0.6 (getESDocs)
+#author: Javier Artiga Garijo (v0.7)
+#date: 29/08/2018
+#version: 0.7 (updateES)
 #INSERT data from a file into ELASTICSEARCH
 #
 #usage: insertES.py dataFile.json elasticSearchIndex
@@ -12,20 +12,27 @@ from elasticsearch import Elasticsearch, helpers
 import argparse
 import requests
 
-es = Elasticsearch(['http://localhost:9200'])
+es = Elasticsearch('http://localhost:9200')
 
 def insertES(data,index):
 	es.indices.create(index=index,ignore=400)
-	#body = str(data).replace( "'",'"')
-	for d in data:
-		body = '{"doc": {'
-		l = list(d)
-		for i in l:
-			if not l.index(i)==len(l)-1:
-				body+='"'+i+'":"'+str(d[i])+'",'
-			else:
-				body+='"'+i+'":"'+str(d[i])+'"}}'
-		es.index(index=index, doc_type='domain', body=body)
+	body = str(data).replace( "'",'"')
+	# for d in data:
+	# 	body = '{"doc": {'
+	# 	l = list(d)
+	# 	for i in l:
+	# 		if not l.index(i)==len(l)-1:
+	# 			body+='"'+i+'":"'+str(d[i])+'",'
+	# 		else:
+	# 			body+='"'+i+'":"'+str(d[i])+'"}}'
+	es.index(index=index, doc_type='domain', body=body)
+
+def updateES(domain,data,index):
+	#first search the domain to get the id:
+	body = {"query": {"match": {"domain": {"query": domain}}},"size": 500}
+	res = es_search_scroll(index, body)
+	#then update the matching doc:
+	es.update(index=index, doc_type='domain', id=res['hits']['hits'][0]['_id'], body={"doc": data}) #TODO: get doc id
 
 def insertESBulk(documents,index):
 	# (from a @julgoor's chunk of code)
@@ -85,7 +92,6 @@ def es_search_scroll(index, body=None, scroll_id=None, scroll_duration="1m"):
 	url = ""
 	if body and scroll_duration:
 		url = 'http://localhost:9200/' + index + "/_search?scroll=%s" % scroll_duration
-		body['size'] = 500
 	else:
 		if scroll_id and scroll_duration:
 			url = 'http://localhost:9200/' + "_search/scroll"

@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-#author: Javier Artiga Garijo (v0.6)
-#date: 22/08/2018
-#version: 0.6 (--elastic and --insertElastic)
+#author: Javier Artiga Garijo (v0.7)
+#date: 29/08/2018
+#version: 0.7 (all TODOs solved, except the subdomains one)
 #given a dictionary of domains (from a file, from elasticsearch or piping it), RETRIEVE DATA of:
 #whois, ip, dns/mx records, webs
 #for each domain and classify it as low/high priority + status info.
 #results of each domain are stored in an array of Domain objects with all their collected info.
 #
 #recommended execution: /usr/bin/time -o time.txt python3 retrieveData.py custCode [-d dictFile.json | -e GetINDEX] [-o outputFile.json | -i InsertINDEX] [-v] >> logFile.log
+
+#WIP: solve all TODOs for v0.7
 
 import argparse
 from datetime import date, timedelta, datetime
@@ -42,13 +44,13 @@ class Domain:
 		self.web = [] # http reqs
 		self.webs = [] # https reqs
 		self.domain = ''
-		self.subdomains = '' #TODO
+		self.subdomains = ''
 		self.test_freq = '0'
-		self.generation = '' #TODO
+		self.generation = ''
 		self.customer = ''
 		self.priority = ''
 		self.timestamp = convertDatetime(datetime.now())
-		self.resolve_time = '' #TODO
+		self.resolve_time = ''
 
 def convertDatetime(date):
 	if isinstance(date, datetime): #if argument's type is datetime
@@ -71,24 +73,26 @@ def retrieveDomainsData(custCode,dictFile,elasticGetIndex,elasticInsertIndex,out
 	#data = data[0:1] ## PARA PRUEBA CORTA
 	for e in data:
 		results = [] # for insertESBulk
-		for dom in e['domains']:
+		for dom in e['domains']: #e['domains'] contains all the variations of a combination (offDom+TLD)
 			d = Domain()
 			d.domain = dom['domain-name']
+			d.generation = dom['fuzzer']
 			d.customer = e['customer']
 			start_time = time()
 			get_dns(d)#; check_whois(d); get_ip(d); check_web(d); check_subomains(d)
 			end_time = time()
+			d.resolve_time = resolve_time = "{:.2f}".format(end_time-start_time)
 
 			if verbose:
 				print("%s - [%i/%i]"%(custCode,e['domains'].index(dom)+1,len(e['domains'])),
-					"[-]" if d.ip==[] else "[x]",
-					d.domain,
-					"(%.2f secs)"%(end_time-start_time))
+					"[-]" if d.ip==[] else "[x]", d.domain, "(%s secs)"%(d.resolve_time))
 
 			if outputFile:
 				# print results as a json to outputF:
-				print(json.dumps(d, indent=2, sort_keys=True),end=",\n",file=outputF)
-				#TODO: avoid to remove last "," manually
+				if e['domains'].index(dom)==len(e['domains'])-1: #if this dom is not the last one:
+					print(json.dumps(d, indent=2, sort_keys=True),end=",\n",file=outputF)
+				else:
+					print(json.dumps(d, indent=2, sort_keys=True),end="\n",file=outputF)
 			elif elasticInsertIndex:
 				results.append(d.__dict__)
 				#insertESBulk(d.__dict__,elasticInsertIndex)

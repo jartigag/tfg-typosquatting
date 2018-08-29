@@ -74,8 +74,10 @@ def genDict(tldsFile,domainsDir,outputDictFile,verbose,reallyVerbose,piping,elas
 					print(fuzzed_doms[0]['domain-name'],end=",",flush=True)
 			elif outputDictFile:
 				# print results as a json to outputDictF:
-				print(json.dumps(e,sort_keys=True),end=",\n",file=outputDictF)
-				#TODO: avoid to remove last "," manually
+				if combs.index(c)!=len(combs)-1: #if this c is not the last one:
+					print(json.dumps(e,sort_keys=True),end=",\n",file=outputDictF)
+				else:
+					print(json.dumps(e,sort_keys=True),end="\n",file=outputDictF)
 
 		if verbose:
 			print("\n%i - %s 	%i doms (%i combs, %i vars)" % (i,cust_code,len(ds),len(combs),nvars))
