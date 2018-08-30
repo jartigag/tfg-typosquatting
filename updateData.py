@@ -75,9 +75,6 @@ def updateData(custCode,indexName,verbose):
 		print(custCode,"loaded")
 
 	try:
-		# just for printing progress:
-		dataPos = 1
-		lastCustCode = data[0]['customer']
 		for dom in data:
 			d_ES = Domain()
 			d_updated = Domain()
@@ -85,25 +82,6 @@ def updateData(custCode,indexName,verbose):
 			for field in vars(d_ES):
 				vars(d_ES)[field] = dom[field]
 				#d_ES.status = dom['status'], d_ES.ip = dom['ip']...
-
-			d_ES.status = dom['status']
-			d_ES.owner = dom['owner']
-			d_ES.reg_date = dom['reg_date']
-			d_ES.owner_change = dom['owner_change']
-			d_ES.creation_date = dom['creation_date']
-			d_ES.ip = dom['ip']
-			d_ES.mx = dom['mx']
-			d_ES.web = dom['web']
-			d_ES.webs = dom['webs']
-			d_ES.domain = dom['domain']
-			d_ES.subdomains = dom['subdomains']
-			d_ES.test_freq = dom['test_freq']
-			d_ES.generation = dom['generation']
-			d_ES.customer = dom['customer']
-			d_ES.priority = dom['priority']
-			d_ES.timestamp = dom['timestamp']
-			if dom['customer']!= lastCustCode:
-				dataPos+=1
 
 			'''
 			if d_ES.status=='resolving': # that is, incomplete data:
