@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-#author: Javier Artiga Garijo (v0.7)
-#date: 29/08/2018
-#version: 0.7 (updateES)
+#author: Javier Artiga Garijo (v0.7.1)
+#date: 31/08/2018
+#version: 0.7.1 ( getESDocs(index, customer='*', technic='*') )
 #INSERT data from a file into ELASTICSEARCH
 #
 #usage: insertES.py dataFile.json elasticSearchIndex
+
+#TODO: mapping en es.index para que interprete las fechas
 
 import json
 from elasticsearch import Elasticsearch, helpers
@@ -71,10 +73,11 @@ def insertESBulk(documents,index):
 		except Exception as e:
 			print("ElasticSearch ERROR:",e)
 
-def getESDocs(index, customer):
+def getESDocs(index, customer='*', technic='*'):
 	# (from a @julgoor's chunk of code)
 	### Prepare the query
-	body = {"query": {"match": {"customer": {"query": customer}}},"size": 500}
+	#body = {"query": {"match": {"domain": {"query": domain}}},"size": 500}
+	body = {"query": {"bool": {"must": [ { "match": { "customer":  customer }}, { "match": { "generation": technic }} ] }}, "size": 500}
 	# Launch the initial query
 	results = es_search_scroll(index, body)
 	# Clean the results

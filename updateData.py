@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #author: Javier Artiga Garijo (v0.3)
-#date: 29/08/2018
-#version: 0.3 ()
+#date: 31/08/2018
+#version: 0.3 ( updateData(..,technic,..) )
 #from ElasticSearch, UPDATE DATA of whois, ip, mx records, webs for each domain
 #if the domain has changed.
 #
@@ -68,9 +68,9 @@ def send_email2(subject, msg):
 	except Exception as e:
 		print('email error: ',e)
 
-def updateData(custCode,indexName,verbose):
+def updateData(custCode,technic,indexName,verbose):
 
-	data = getESDocs(indexName,custCode) # in this array goes the initial data, each customer at once
+	data = getESDocs(indexName,custCode,technic) # in this array goes the initial data, each customer at once
 	if verbose:
 		print(custCode,"loaded")
 
@@ -93,14 +93,16 @@ def updateData(custCode,indexName,verbose):
 			# if today is reviewing date:
 			if convertDatetime(d_ES.timestamp) + timedelta(int(d_ES.test_freq)) <= datetime.today():
 				start_time = time()
-				d_updated.domain = d_ES.domain
-				check_whois(d_updated); get_ip(d_updated); check_web(d_updated)#; check_subdomains(d_updated); get_dns(d_updated)
+				for field in vars(d_updated):
+					vars(d_updated)[field] = vars(d_ES)[field]
+				d_updated.timestamp = convertDatetime(datetime.now())
+				check_whois(d_updated)#; get_ip(d_updated); check_web(d_updated); check_subdomains(d_updated); get_dns(d_updated)
 				end_time = time()
 				d_updated.resolve_time = resolve_time = "{:.2f}".format(end_time-start_time)
 
 				if verbose:
-					print("cust%i"%(dataPos), "[-]" if d_updated.ip==[] else "[x]",
-						"%s %s"%(d_updated.customer,d_updated.domain), "(%s secs)"%(d_updated.resolve_time))
+					print("%s - [%i/%i]"%(custCode,data.index(dom)+1,len(data)),
+					"[-]" if d_updated.ip==[] else "[x]", d_updated.domain, "(%s secs)"%(d_updated.resolve_time))
 
 				updateES(d_updated.domain,d_updated.__dict__, indexName)
 
@@ -123,13 +125,17 @@ def updateData(custCode,indexName,verbose):
 	except Exception as e:
 		print('updateData error:', e)
 
+	if verbose:
+		print("update finished.")
+
 if __name__ == '__main__':
 
 	parser = argparse.ArgumentParser()
-	parser.add_argument('custCode',help='TEF_ES (usually extracted by multiUpDat.sh)')
+	parser.add_argument('custCode',help='e.g.: TEF_ES (usually extracted by multiUpDat.sh)')
+	parser.add_argument('technic',help='e.g.: addition. it\'s the typosquatting technic')
 	parser.add_argument('elasticSearchIndex')
 	parser.add_argument('-v','--verbose',action='store_true')
 	args = parser.parse_args()
 
 	es = Elasticsearch(['http://localhost:9200'])
-	updateData(args.custCode,args.elasticSearchIndex,args.verbose)
+	updateData(args.custCode,args.technic,args.elasticSearchIndex,args.verbose)

@@ -2,15 +2,15 @@
 # -*- coding: utf-8 -*-
 #author: Javier Artiga Garijo (v0.7)
 #date: 29/08/2018
-#version: 0.7 (all TODOs solved, except the subdomains one)
+#version: 0.7 ( retrieveDomainsData(..,technic,..) )
 #given a dictionary of domains (from a file, from elasticsearch or piping it), RETRIEVE DATA of:
 #whois, ip, dns/mx records, webs
 #for each domain and classify it as low/high priority + status info.
 #results of each domain are stored in an array of Domain objects with all their collected info.
 #
-#recommended execution: /usr/bin/time -o time.txt python3 retrieveData.py custCode [-d dictFile.json | -e GetINDEX] [-o outputFile.json | -i InsertINDEX] [-v] >> logFile.log
+#recommended execution: /usr/bin/time -o time.txt python3 retrieveData.py technic custCode [-d dictFile.json | -e GetINDEX] [-o outputFile.json | -i InsertINDEX] [-v] >> logFile.log
 
-#WIP: solve all TODOs for v0.7
+#WIP: solve all TODOs for v0.7. technic in args.
 
 import argparse
 from datetime import date, timedelta, datetime
@@ -60,14 +60,14 @@ def convertDatetime(date):
 	else:
 		return False
 
-def retrieveDomainsData(custCode,dictFile,elasticGetIndex,elasticInsertIndex,outputFile,verbose):
+def retrieveDomainsData(custCode,technic,dictFile,elasticGetIndex,elasticInsertIndex,outputFile,verbose):
 	if outputFile:
 		outputF=open(outputFile,'w')
 		print("[",end="",file=outputF)
 	if dictFile:
 		data = json.load(open(dictFile))
 	elif elasticGetIndex:
-		data = getESDocs(elasticGetIndex,custCode)
+		data = getESDocs(elasticGetIndex,custCode,technic)
 		if verbose:
 			print(custCode,"loaded")
 	#data = data[0:1] ## PARA PRUEBA CORTA
@@ -124,6 +124,7 @@ def check_whois(d):
 			d.status = 'parked'
 	except:
 		#domain doesn't resolve:
+		#TODO: this also applies if there's a parsing error in the whois response
 		if convertDatetime(d.reg_date) > datetime.now()-timedelta(seconds=200): #"now", with a margin of 200 secs
 			#not registered (because reg_date is now):
 			d.priority = 'low'
@@ -209,7 +210,8 @@ if __name__ == '__main__':
 
 	parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter,
 		usage="%(prog)s [opt args]\npipelining e.g.: echo \"{'fuzzer': 'Original*', 'domain-name': 'movistar.com'}\" | %(prog)s [opt args]")
-	parser.add_argument('custCode',help='TEF_ES (usually extracted by multiRetrDat.sh)')
+	parser.add_argument('custCode',help='e.g.: TEF_ES (usually extracted by multiRetrDat.sh)')
+	parser.add_argument('technic',help='e.g.: addition. it\'s the typosquatting technic')
 	onlyOneGroup = parser.add_mutually_exclusive_group()
 	onlyOneGroup.add_argument('-d','--dictFile',help='e.g.: dict-37tlds.json')
 	onlyOneGroup.add_argument('-e','--elastic',metavar='INDEX',help='get data from ES')
@@ -224,7 +226,7 @@ if __name__ == '__main__':
 	if args.dictFile or args.elastic:
 		if args.elastic:
 			es = Elasticsearch(['http://localhost:9200'])
-		retrieveDomainsData(args.custCode,args.dictFile,args.elastic,args.insertElastic,args.outputFile,args.verbose)
+		retrieveDomainsData(args.custCode,args.technic,args.dictFile,args.elastic,args.insertElastic,args.outputFile,args.verbose)
 	else:
 		# GET DNS with DomainThreads (just for piping-PoC)
 		for line in sys.stdin:
