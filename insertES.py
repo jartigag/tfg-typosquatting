@@ -27,14 +27,14 @@ def insertES(data,index):
 	# 			body+='"'+i+'":"'+str(d[i])+'",'
 	# 		else:
 	# 			body+='"'+i+'":"'+str(d[i])+'"}}'
-	es.index(index=index, doc_type='domain', body=body)
+	es.index(index=index, doc_type='domain', body=body) #TODO: mapping
 
 def updateES(domain,data,index):
 	#first search the domain to get the id:
 	body = {"query": {"match": {"domain": {"query": domain}}},"size": 500}
 	res = es_search_scroll(index, body)
 	#then update the matching doc:
-	es.update(index=index, doc_type='domain', id=res['hits']['hits'][0]['_id'], body={"doc": data}) #TODO: get doc id
+	es.update(index=index, doc_type='domain', id=res['hits']['hits'][0]['_id'], body={"doc": data})
 
 def insertESBulk(documents,index):
 	# (from a @julgoor's chunk of code)
@@ -56,18 +56,11 @@ def insertESBulk(documents,index):
 		# Prepare the data
 		bulk_data = []
 		for doc in part:
-
 			data_dict = doc
-
-			op_dict = {
-				"index": {
-					"_index": index,
-					"_type": 'domain'
-				}
-			}
-
+			op_dict = {"index": {"_index": index,"_type": 'domain'}}
 			bulk_data.append(op_dict)
 			bulk_data.append(data_dict)
+
 		try:
 			es.bulk (index=index, body=bulk_data, refresh=True)
 		except Exception as e:
@@ -76,7 +69,6 @@ def insertESBulk(documents,index):
 def getESDocs(index, customer='*', technic='*'):
 	# (from a @julgoor's chunk of code)
 	### Prepare the query
-	#body = {"query": {"match": {"domain": {"query": domain}}},"size": 500}
 	body = {"query": {"bool": {"must": [ { "match": { "customer":  customer }}, { "match": { "generation": technic }} ] }}, "size": 500}
 	# Launch the initial query
 	results = es_search_scroll(index, body)

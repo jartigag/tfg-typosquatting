@@ -10,7 +10,7 @@
 #
 #recommended execution: /usr/bin/time -o time.txt python3 retrieveData.py technic custCode [-d dictFile.json | -e GetINDEX] [-o outputFile.json | -i InsertINDEX] [-v] >> logFile.log
 
-#WIP: solve all TODOs for v0.7. technic in args.
+#WIP: solve all TODOs for v0.7
 
 import argparse
 from datetime import date, timedelta, datetime
@@ -95,7 +95,6 @@ def retrieveDomainsData(custCode,technic,dictFile,elasticGetIndex,elasticInsertI
 					print(json.dumps(d, indent=2, sort_keys=True),end="\n",file=outputF)
 			elif elasticInsertIndex:
 				results.append(d.__dict__)
-				#insertESBulk(d.__dict__,elasticInsertIndex)
 		if elasticInsertIndex:
 			insertESBulk(results,elasticInsertIndex)
 	if outputFile:
@@ -111,6 +110,7 @@ def check_whois(d):
 		d.owner_change = convertDatetime(w.last_updated)
 		d.creation_date = convertDatetime(w.creation_date)
 		# ASSIGN PRIORITY
+		# TODO: change criteria for how priority is assigned (out of check_whois)
 		#domain resolves:
 		if convertDatetime(d.reg_date)==False:
 			pass #to discard wrong reg_dates
@@ -204,6 +204,7 @@ def check_subdomains(d):
 	pass
 
 def answer_to_list(answers):
+	# (from dnstwist)
 	return sorted(list(map(lambda record: str(record).strip(".") if len(str(record).split(' ')) == 1 else str(record).split(' ')[1].strip('.'), answers)))
 
 if __name__ == '__main__':
@@ -231,7 +232,7 @@ if __name__ == '__main__':
 		# GET DNS with DomainThreads (just for piping-PoC)
 		for line in sys.stdin:
 			domain_str = '{'+line.split('{')[1] # e.g.: domain_str = "{'fuzzer': 'Original*', 'domain-name': 'movistar.com'}"
-			domain = json.loads(domain_str.replace( "'",'"')) # json needs property name enclosed in double quotes
+			domain = json.loads(domain_str.replace( "'",'"')) # json needs property name to be enclosed in double quotes
 
 			d = Domain()
 			d.domain = domain['domain-name']
