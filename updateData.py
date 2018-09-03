@@ -107,6 +107,16 @@ def updateData(custCode,technic,indexName,verbose):
 				updateES(d_updated.domain,d_updated.__dict__, indexName)
 
 				# if something has changed:
+				for field in vars(d_updated):
+					if field=="timestamp" or field=="resolve_time" or field=="owner_change" or field=="creation_date" or field=="reg_date":
+						continue
+					elif vars(d_updated)[field] != vars(d_ES)[field]:
+						subject = d_updated.domain+" has changed"
+						msg = 'NOW:\n'+str(d_updated.__dict__)+'\n\nBEFORE:\n'+str(d_ES.__dict__)
+						send_email(subject, msg)
+						#send_email2(subject, msg)
+						if verbose:
+							print("	%s has changed: %s"%(d_updated.domain,str(d_updated.__dict__)))
 				'''
 				if d_updated.ip!=d_ES.ip or d_updated.mx!=d_ES.mx or d_updated.web!=d_ES.web or d_updated.webs!=d_ES.webs:
 					dd1 = 'DOMAIN: %s , Date: %s' % (str(d_updated.domain), str(d_updated.timestamp))

@@ -1,17 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-#author: Javier Artiga Garijo (v0.2)
-#date: 16/07/2018 (using helpers.scan to scroll ES)
-#version: 0.2 (based on ts-updater.py)
-# from ElasticSearch, UPDATE DATA of whois, ip, mx records, webs for each domain
-# if the domain has changed.
+#author: Javier Artiga Garijo (v0.4)
+#date: 03/09/2018 (adapted for STAGE1)
+#version: 0.4 WIP ( notifications )
+#from ElasticSearch, UPDATE DATA of whois, ip, mx records, webs for each domain
+#if the domain has changed.
 #
-#usage: updateDataES.py elasticSearchIndex [-v]
-
-#TO-DO LIST (17/07/2018):
-# show progress with an index var or something
-# too many domains are checked in each execution. isn't the reviewing date condition correctly working?
-# (this last fact was observed in data1. #TODO: check with data5)
+#usage: updateDataES.py custCode elasticSearchIndex [-v]
 
 import argparse
 from datetime import timedelta, datetime
@@ -25,12 +20,33 @@ import json
 import smtplib
 from email.mime.text import MIMEText
 from elasticsearch import Elasticsearch, helpers
-from retrieveData import check_whois, get_ip, get_mx, check_web, Domain
+from retrieveData import Domain,convertDatetime,check_whois,get_ip,check_web,check_subdomains#,get_dns
+from insertES import updateES, getESDocs
 
 def send_email(subject, msg):
 	sender_gmail = 'typosquattingnotifications.11p@gmail.com'
 	password_gmail = 'innovation123abc..'
 	receiver_gmail = 'typosquattingnotifications.11p@gmail.com'
+	try:
+		mailServer = smtplib.SMTP('smtp.gmail.com', 587)
+		mailServer.ehlo()
+		mailServer.starttls()
+		mailServer.ehlo()
+		mailServer.login(sender_gmail, password_gmail)
+		message = MIMEText(msg)
+		message['From'] = sender_gmail
+		message['To'] = receiver_gmail
+		message['Subject'] = subject
+		mailServer.sendmail(sender_gmail,
+							receiver_gmail,
+							message.as_string())
+	except Exception as e:
+		print('email error: ',e)
+
+def send_email2(subject, msg):
+	sender_gmail = 'typosquattingnotifications.11p@gmail.com'
+	password_gmail = 'innovation123abc..'
+	receiver_gmail = 'tags.threats.analysis@telefonica.com'
 	try:
 		mailServer = smtplib.SMTP('smtp.gmail.com', 587)
 		mailServer.ehlo()
@@ -55,80 +71,55 @@ def convertDatetime(date):
 	else:
 		return False
 
-def updateData(indexName,verbose):
-	es = Elasticsearch(['http://localhost:9200'])
+def updateData(custCode,indexName,verbose):
+
+	data = getESDocs(indexName,custCode) # in this array goes the initial data, each customer at once
+	if verbose:
+		print(custCode,"loaded")
+
 	try:
-		allElements = helpers.scan(es,index=indexName, preserve_order=True, query={"query": {"match": {"_index": indexName}}})
-		for oneElement in list(allElements):
+		for dom in data:
 			d_ES = Domain()
 			d_updated = Domain()
-			elem = oneElement['_source']['doc']
-			# We have to catch all data per data as domain, status, web...
-			#TODO: can this be shorter?
-			d_ES.status = elem['status']
-			d_ES.owner = elem['owner']
-			d_ES.reg_date = elem['reg_date']
-			d_ES.owner_change = elem['owner_change']
-			d_ES.creation_date = elem['creation_date']
-			d_ES.ip = elem['ip']
-			d_ES.mx = elem['mx']
-			d_ES.web = elem['web']
-			#d_ES.webs = elem['webs']
-			d_ES.domain = elem['domain']
-			d_ES.subdomains = elem['subdomains']
-			d_ES.test_freq = elem['test_freq']
-			d_ES.generation = elem['generation']
-			d_ES.customer = elem['customer']
-			d_ES.priority = elem['priority']
-			d_ES.timestamp = elem['timestamp']
 
+			for field in vars(d_ES):
+				vars(d_ES)[field] = dom[field]
+				#d_ES.status = dom['status'], d_ES.ip = dom['ip']...
+
+			'''
 			if d_ES.status=='resolving': # that is, incomplete data:
 				#TODO: fix in retrieveData.py
 				continue #ignore it (by now)
+			'''
 
+			if d_ES.test_freq=='': d_ES.test_freq='0' #TEMP PATCH
 			# if today is reviewing date:
 			if convertDatetime(d_ES.timestamp) + timedelta(int(d_ES.test_freq)) <= datetime.today():
 				start_time = time()
-				d_updated.domain = d_ES.domain
-				check_whois(d_updated) #TODO: w.creation_date[-1] ¿?
-				get_ip(d_updated)
-				get_mx(d_updated)
-				check_web(d_updated)
+				for field in vars(d_updated):
+					vars(d_updated)[field] = vars(d_ES)[field]
+				d_updated.timestamp = convertDatetime(datetime.now())
+				get_dns(d_updated)#; get_ip(d_updated); check_web(d_updated); check_subdomains(d_updated); get_dns(d_updated)
 				end_time = time()
-				if verbose:
-					#print("cust%i - [%i/%i]"%(data.index(e)+1,e['domains'].index(dom)+1,len(e['domains'])),
-					#TODO: index of the domain?
-					print("[-]" if d_updated.ip==[] else "[x]",
-						"%s %s"%(d_updated.customer,d_updated.domain),
-						"(%.2f secs)"%(end_time-start_time))
+				d_updated.resolve_time = resolve_time = "{:.2f}".format(end_time-start_time)
 
-				# In this part of the script will look if data are diferent of elasticsearch data
-				'''
-					# by now, this has no sense because whois.query('adomain.com').owner it's always 'adomain.com'
-					if d_ES.owner != d_updated.owner:
-						subject = str(d_updated.owner)+'\'s owner has changed'
-						msg1 = 'Domain: ' + str(d_updated.domain) + ' timestamp: ' + str(d_updated.timestamp)
-						msg2 = '\nOld owner: ' + str(d_ES.owner)
-						msg3 = '\nNew owner: ' + str(owner0) +'\nIP:' + str(ip0) + ' MX:' + str(mx0)
-						msg = msg1 + msg2 + msg3
+				if verbose:
+					print("%s - [%i/%i]"%(custCode,data.index(dom)+1,len(data)),
+					"[-]" if d_updated.ip==[] else "[x]", d_updated.domain, "(%s secs)"%(d_updated.resolve_time))
+
+				updateES(d_updated.domain,d_updated.__dict__, indexName)
+
+				# if something has changed:
+				for field in vars(d_updated):
+					if field=="timestamp" or field=="resolve_time" or field=="owner_change" or field=="creation_date" or field=="reg_date":
+						continue
+					elif vars(d_updated)[field] != vars(d_ES)[field]:
+						subject = d_updated.domain+" has changed"
+						msg = 'NOW:\n'+str(d_updated.__dict__)+'\n\nBEFORE:\n'+str(d_ES.__dict__)
 						send_email(subject, msg)
-						# if ip0 == '' or ip0 is None:
-						# 	priority0 = 'high'
-						# 	status0 = 'very suspect'
-						# else:
-						# 	priority0 = 'high'
-						# 	status0 = 'suspect'
-					else:
-						if d_updated.ip==[] and d_updated.owner!='':
-							d_updated.priority = 'low'
-							d_updated.status = 'parking'
-						else:
-							d_updated.priority = 'low'
-							d_updated.status = 'very low priority'
-					if d.priority=='high':
-						d.test_freq = 1
-					elif d.priority=='low':
-						d.test_freq = 14
+						#send_email2(subject, msg)
+						if verbose:
+							print("	%s has changed: %s"%(d_updated.domain,str(d_updated.__dict__)))
 				'''
 				if d_updated.ip!=d_ES.ip or d_updated.mx!=d_ES.mx or d_updated.web!=d_ES.web or d_updated.webs!=d_ES.webs:
 					dd1 = 'DOMAIN: %s , Date: %s' % (str(d_updated.domain), str(d_updated.timestamp))
@@ -141,38 +132,14 @@ def updateData(indexName,verbose):
 					subject = 'News in ip, mx or web'
 					msg = dd1 + '\n' + dd2 + '\n' + dd3
 					send_email(subject, msg)
-					# We don't want the same data in our txt
-					with open('changes_in_domain.txt', 'r') as f:
-						for i in f.readlines():
-							if i == dd1 or i == dd1 + '\n':
-								pass
-							else: # if data hasn't been created:
-								with open('changes_in_domain.txt', 'a') as f:
-									f.write('\n' + dd1 + '\n' + dd2 + '\n' + dd3 + '\n')
-				else:
-					d_updated.test_freq = '14'
-					d_updated.priority = 'low'
-					d_updated.status = 'parking'
+					send_email2(subject, msg)
+				'''
 
-				try:
-					body = '{"doc": {'
-					field_names = d_updated.__dict__
-					for i in field_names:
-						if not list(field_names).index(i)==len(field_names)-1:
-							body+='"'+i+'":"'+str(field_names[i])+'",'
-						else:
-							body+='"'+i+'":"'+str(field_names[i])+'"}}'
-					es.update(index=indexName, doc_type='string', body=body, id=d_updated.domain)
-					if verbose:
-						print('Uploaded:', d_updated.domain)
-				except Exception as e:
-					print('Not uploaded:', d_updated.domain)
-					print('data insertion error:', str(e))
 	except Exception as e:
 		print('updateData error:', e)
 
-	#if verbose:
-	#	print('TOTAL UPDATED DOMAINS:', actualElement)
+	if verbose:
+		print("update finished.")
 
 if __name__ == '__main__':
 
