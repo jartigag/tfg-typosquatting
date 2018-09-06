@@ -4,7 +4,8 @@
 #author: Aruna Prem Bianzino (v0.1, typosquattinggeneration.py)
 #date: 03/07/2018
 #version: 0.4 (it accepts arguments)
-# GENerate a DICTionary of DOMAINS from a list of Official Domains and a list of ccTLDs
+#GENerate a DICTionary of DOMAINS
+# from a list of Official Domains and a list of ccTLDs
 
 #usage: genDict.py [-v] tldsJSONFile domainsDirectory outputDictFile
 
@@ -15,7 +16,8 @@ import json
 def genDict(tldsFile,domainsDir,verbose):
 	files = []
 	doms = []
-	result = [] # array with all domains for all clients, as ["customer":cust_code,"domains":res]
+	result = [] # array with all domains for all clients,
+				# as ["customer":cust_code,"domains":res]
 	tlds = json.load(open(tldsFile))
 
 	for f in os.listdir(domainsDir):
@@ -34,7 +36,8 @@ def genDict(tldsFile,domainsDir,verbose):
 		i+=1
 		d=doms[i-1]
 		if verbose:
-			print("%i - %s 	%i doms (%i combs, " % (i,cust_code,len(d),len(d)*len(tlds)),end="")
+			print("%i - %s 	%i doms (%i combs)" %
+				(i,cust_code,len(d),len(d)*len(tlds)))
 		ndoms+=len(d)
 		ncombs+=len(d)*len(tlds)
 		for url in d:
@@ -54,7 +57,8 @@ def genDict(tldsFile,domainsDir,verbose):
 		c=0
 		for r in result:
 			c+=len(r['domains'])
-		print("TOTAL COMBINATIONS:",c,"(%i duplicates domains removed)"%(ncombs-c))
+		print("TOTAL COMBINATIONS:",c,
+			"(%i duplicates domains removed)"%(ncombs-c))
 
 	return result
 
@@ -74,7 +78,9 @@ if __name__ == '__main__':
 		print("[",end="",file=f)
 		for r in results:
 			if not results.index(r)==len(results)-1:
-				print(json.dumps(r, indent=2, sort_keys=True),end=",\n",file=f)
+				print(json.dumps(r, indent=2, sort_keys=True),
+					end=",\n",file=f)
 			else:
-				print(json.dumps(r, indent=2, sort_keys=True),end="",file=f)
+				print(json.dumps(r, indent=2, sort_keys=True),
+					end="",file=f)
 		print("]",file=f)

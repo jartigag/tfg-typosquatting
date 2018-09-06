@@ -8,14 +8,16 @@
 
 totalReg=$(grep 'NS:' $1 | wc -l) # number of registered domains
 totalMX=$(grep 'MX:' $1 | wc -l) # number of domains with mx servers associated
-totalIP=$(grep -E "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b" $1 | wc -l) # number of domains with ip address associated
+totalIP=$(grep -E "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b" $1 | wc -l)
+# number of domains with ip address associated
 
 percent() {
 	echo "$(echo "scale=$3;$1*100/$2" | bc -l)"
 }
 
 printf "%-15s %-15s %-15s %-15s\n" "technic:" "reg:" "mx:" "ip:"
-printf "%-13s %-13s %-17s %-17s\n" "" "(% of total)" "[% in each technic]" "[% in each technic]"
+printf "%-13s %-13s %-17s %-17s\n" "" "(% of total)" \
+	"[% in each technic]" "[% in each technic]"
 for t in Various Original Repetition Hyphenation Transposition Vowel-swap Omission \
 Subdomain Addition Homoglyph Replacement Bitsquatting Insertion
 do
@@ -35,7 +37,8 @@ printf "%-15s %-15s %-15s %-15s\n" "total:" \
 "$totalReg ($(percent $totalMX $totalVars 3)%" \
 "$totalMX ($(percent $totalMX $totalReg 0)%)" \
 "$totalIP ($(percent $totalIP $totalReg 0)%)"
-printf "%-6s %-22s %-16s %-16s\n" "" "of $totalVars variations)" "(% of total reg)" "(% of total reg)"
+printf "%-6s %-22s %-16s %-16s\n" "" "of $totalVars variations)" \
+	"(% of total reg)" "(% of total reg)"
 
 # technic:        reg: (% total)  mx: [% reg]     ip: [% reg]
 # Various         4265 (0%)       2121 [49%]      3951 [92%]

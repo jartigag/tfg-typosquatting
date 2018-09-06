@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #author: Javier Artiga Garijo (v0.7.1)
-#date: 31/08/2018
+#date: 29/08/2018
 #version: 0.7.1 ( getESDocs(index, customer='*', technic='*') )
 #INSERT data from a file into ELASTICSEARCH
 #
 #usage: insertES.py dataFile.json elasticSearchIndex
 
-#TODO: mapping en es.index para que interprete las fechas
+#WIP: mapping
 
 import json
 from elasticsearch import Elasticsearch, helpers
@@ -17,7 +17,31 @@ import requests
 es = Elasticsearch('http://localhost:9200')
 
 def insertES(data,index):
-	es.indices.create(index=index,ignore=400)
+	mapping = {
+	  "mappings":{
+	    "domain":{
+	      "properties":{
+	        "timestamp":{
+	          "type":"date",
+	          "format":"yyyy-MM-dd hh:mm:ss"
+	        },
+	        "reg_date":{
+	          "type":"date",
+	          "format":"yyyy-MM-dd hh:mm:ss"
+	        },
+	        "owner_change":{
+	          "type":"date",
+	          "format":"yyyy-MM-dd hh:mm:ss"
+	        },
+	        "creation_date":{
+	          "type":"date",
+	          "format":"yyyy-MM-dd hh:mm:ss"
+	        }
+	      }
+	    }
+	  }
+	}
+	es.indices.create(index=index,ignore=400, body=mapping)
 	body = str(data).replace( "'",'"')
 	# for d in data:
 	# 	body = '{"doc": {'
@@ -27,14 +51,15 @@ def insertES(data,index):
 	# 			body+='"'+i+'":"'+str(d[i])+'",'
 	# 		else:
 	# 			body+='"'+i+'":"'+str(d[i])+'"}}'
-	es.index(index=index, doc_type='domain', body=body) #TODO: mapping
+	es.index(index=index, doc_type='domain', body=body)
 
 def updateES(domain,data,index):
 	#first search the domain to get the id:
 	body = {"query": {"match": {"domain": {"query": domain}}},"size": 500}
 	res = es_search_scroll(index, body)
 	#then update the matching doc:
-	es.update(index=index, doc_type='domain', id=res['hits']['hits'][0]['_id'], body={"doc": data})
+	es.update(index=index, doc_type='domain', 
+		id=res['hits']['hits'][0]['_id'], body={"doc": data})
 
 def insertESBulk(documents,index):
 	# (from a @julgoor's chunk of code)
@@ -69,7 +94,9 @@ def insertESBulk(documents,index):
 def getESDocs(index, customer='*', technic='*'):
 	# (from a @julgoor's chunk of code)
 	### Prepare the query
-	body = {"query": {"bool": {"must": [ { "match": { "customer":  customer }}, { "match": { "generation": technic }} ] }}, "size": 500}
+	body = {"query": { "match": { "customer":  customer }}, "size": 500}
+	#body = {"query":{"bool":{"must":[ {"match":{"customer":customer}},
+	# {"match":{"generation":technic}} ] }}, "size": 500}
 	# Launch the initial query
 	results = es_search_scroll(index, body)
 	# Clean the results
@@ -86,7 +113,8 @@ def es_search_scroll(index, body=None, scroll_id=None, scroll_duration="1m"):
 	# Prepare the URL and the body depending on the first call or other
 	url = ""
 	if body and scroll_duration:
-		url = 'http://localhost:9200/' + index + "/_search?scroll=%s" % scroll_duration
+		url = 'http://localhost:9200/' + index + \
+			"/_search?scroll=%s" % scroll_duration
 	else:
 		if scroll_id and scroll_duration:
 			url = 'http://localhost:9200/' + "_search/scroll"

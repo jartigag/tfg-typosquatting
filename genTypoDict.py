@@ -6,7 +6,8 @@
 #GENerate a DICTionary of DOMAINS and its TYPOsquatting variations
 #from a list of Official Domains and a list of TLDs
 #
-#usage: genTypoDict.py [-o outputDictFile] [-e INDEX | -E INDEX | -p ] [-v] tldsJSONFile domainsDirectory
+#usage: genTypoDict.py [-o outputDictFile] [-e INDEX | -E INDEX | -p ]
+# [-v] tldsJSONFile domainsDirectory
 
 import argparse
 import os
@@ -15,7 +16,8 @@ from dnstwist import DomainFuzz
 from elasticsearch import Elasticsearch
 from insertES import insertES, insertESBulk
 
-def genDict(tldsFile,domainsDir,outputDictFile,verbose,reallyVerbose,piping,elasticIndexDom,elasticIndexCust):
+def genDict(tldsFile,domainsDir,outputDictFile,verbose,reallyVerbose,
+	piping,elasticIndexDom,elasticIndexCust):
 	if reallyVerbose:
 		verbose=True
 	if outputDictFile:
@@ -74,13 +76,17 @@ def genDict(tldsFile,domainsDir,outputDictFile,verbose,reallyVerbose,piping,elas
 					print(fuzzed_doms[0]['domain-name'],end=",",flush=True)
 			elif outputDictFile:
 				# print results as a json to outputDictF:
-				if combs.index(c)!=len(combs)-1: #if this c is not the last one:
-					print(json.dumps(e,sort_keys=True),end=",\n",file=outputDictF)
+				#if this c is not the last one:
+				if combs.index(c)!=len(combs)-1: 
+					print(json.dumps(e,sort_keys=True),
+						end=",\n",file=outputDictF)
 				else:
-					print(json.dumps(e,sort_keys=True),end="\n",file=outputDictF)
+					print(json.dumps(e,sort_keys=True),
+						end="\n",file=outputDictF)
 
 		if verbose:
-			print("\n%i - %s 	%i doms (%i combs, %i vars)" % (i,cust_code,len(ds),len(combs),nvars))
+			print("\n%i - %s 	%i doms (%i combs, %i vars)" %
+				(i,cust_code,len(ds),len(combs),nvars))
 
 		if elasticIndexCust:
 			print("inserting %s into ES with bulk api.."%(cust_code))
@@ -94,7 +100,8 @@ def genDict(tldsFile,domainsDir,outputDictFile,verbose,reallyVerbose,piping,elas
 
 	if verbose:
 		print("TOTAL domains:",ndoms)
-		print("TOTAL combinations: %i (%i with duplicates)"%(len(combs),ncombs))
+		print("TOTAL combinations: %i (%i with duplicates)"
+			%(len(combs),ncombs))
 		print("TOTAL variations (possible duplicates):",totalnvars)
 
 	if outputDictFile:
@@ -104,17 +111,26 @@ if __name__ == '__main__':
 
 	parser = argparse.ArgumentParser()
 	onlyOneGroup = parser.add_mutually_exclusive_group()
-	parser.add_argument('tldsJSONFile',help='e.g.: files/tlds-44.json')
-	parser.add_argument('domainsDirectory',help='e.g.: files/DAT/')
-	parser.add_argument('-o','--outputDictFile',help='e.g.: dict-44tlds.json')
-	onlyOneGroup.add_argument('-e','--elastic',metavar='INDEX',help='insert results (one domain at once) into ES')
-	onlyOneGroup.add_argument('-E','--Elastic',metavar='INDEX',help='insert results (one customer at once) into ES')
-	onlyOneGroup.add_argument('-p','--piping',action='store_true',help='print each result in stdout')
-	parser.add_argument('-v','--verbose',action='store_true',help='print how many combinations there are')
-	parser.add_argument('-V','--reallyVerbose',action='store_true',help='print each combination')
+	parser.add_argument('tldsJSONFile',
+		help='e.g.: files/tlds-44.json')
+	parser.add_argument('domainsDirectory',
+		help='e.g.: files/DAT/')
+	parser.add_argument('-o','--outputDictFile',
+		help='e.g.: dict-44tlds.json')
+	onlyOneGroup.add_argument('-e','--elastic',metavar='INDEX',
+		help='insert results (one domain at once) into ES')
+	onlyOneGroup.add_argument('-E','--Elastic',metavar='INDEX',
+		help='insert results (one customer at once) into ES')
+	onlyOneGroup.add_argument('-p','--piping',action='store_true',
+		help='print each result in stdout')
+	parser.add_argument('-v','--verbose',action='store_true',
+		help='print how many combinations there are')
+	parser.add_argument('-V','--reallyVerbose',action='store_true',
+		help='print each combination')
 	args = parser.parse_args()
 
 	if args.elastic:
 		es = Elasticsearch(['http://localhost:9200'])
 
-	genDict(args.tldsJSONFile,args.domainsDirectory,args.outputDictFile,args.verbose,args.reallyVerbose,args.piping,args.elastic,args.Elastic)
+	genDict(args.tldsJSONFile,args.domainsDirectory,args.outputDictFile,
+		args.verbose,args.reallyVerbose,args.piping,args.elastic,args.Elastic)

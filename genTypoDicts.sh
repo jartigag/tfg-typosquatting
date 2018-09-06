@@ -12,6 +12,7 @@ $n=44
 for technic in omission repetition addition
 do
 	/usr/bin/time -o times/time-dict-typo$n-tlds-$technic.txt \
-		python3 genTypoDict.py -v files/tlds-$n.json files/DAT/ dicts/dict-typo$n-tlds-$technic.json -t $technic \
+		python3 genTypoDict.py -v files/tlds-$n.json files/DAT/ \
+			dicts/dict-typo$n-tlds-$technic.json -t $technic \
 		>> prints-dicts/prints-dict-typo$n-tlds-$technic.txt
 done

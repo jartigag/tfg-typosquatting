@@ -3,9 +3,10 @@
 #author: Javier Artiga Garijo (v0.1)
 #date: 17/07/2018
 #version: 0.1
-# GENerate 2 DICTionaries from a log: fast-dict and slow-dict
+#GENerate 2 DICTionaries from a log: fast-dict and slow-dict
 
-#usage: gen2Dicts.py [-v] logFile outputDictFile (-v mainly to debug, significantly faster without it)
+#usage: gen2Dicts.py [-v] logFile outputDictFile
+#(-v mainly to debug, significantly faster without it)
 
 import argparse
 import json
@@ -22,7 +23,8 @@ def genDict(logFile,verbose):
 
 	for l in file:
 		secs = int(l.split()[6].split('.')[0][1:])
-		if file.index(l)%10000==0:  #DEBUGGING (to check if all domains are processed)
+		if file.index(l)%10000==0: 
+		#DEBUGGING (to check if all domains are processed)
 			if verbose:
 				print('[*]',file.index(l))
 				c=0
@@ -91,9 +93,11 @@ if __name__ == '__main__':
 		for r in fastRes:
 			if r['customer']!='':
 				if fastRes[fastRes.index(r)+1]['customer']=='':
-					print(json.dumps(r, indent=2, sort_keys=True),end="",file=f)
+					print(json.dumps(r, indent=2, sort_keys=True),
+						end="",file=f)
 				else:
-					print(json.dumps(r, indent=2, sort_keys=True),end=",\n",file=f)
+					print(json.dumps(r, indent=2, sort_keys=True),
+						end=",\n",file=f)
 		print("]",file=f)
 
 	# print slowRes as a json to slowDictFile
@@ -102,7 +106,9 @@ if __name__ == '__main__':
 		for r in slowRes:
 			if r['customer']!='':
 				if slowRes[slowRes.index(r)+1]['customer']=='':
-					print(json.dumps(r, indent=2, sort_keys=True),end="",file=f)
+					print(json.dumps(r, indent=2, sort_keys=True),
+						end="",file=f)
 				else:
-					print(json.dumps(r, indent=2, sort_keys=True),end=",\n",file=f)
+					print(json.dumps(r, indent=2, sort_keys=True),
+						end=",\n",file=f)
 		print("]",file=f)

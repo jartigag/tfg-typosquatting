@@ -8,9 +8,11 @@
 # usage: bash multiRetrDat.sh ESindexFrom ESindexTo
 
 echo "$(date) - running script.."
+# custList = []
+# for c in os.listdir(customersDomainsDirectory):
+#       custList.append(c.split('_-_')[0]) # customer code
 
 arrFiles=(files/DAT/*)
-
 #for filename in ${arrFiles[@]:0:3}
 for filename in ${arrFiles[@]}
 do
