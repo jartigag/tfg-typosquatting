@@ -3,12 +3,15 @@
 #author: Javier Artiga Garijo (v0.7)
 #date: 29/08/2018
 #version: 0.7 ( retrieveDomainsData(..,technic,..) )
-#given a dictionary of domains (from a file, from elasticsearch or piping it), RETRIEVE DATA of:
-#whois, ip, dns/mx records, webs
+#given a dictionary of domains (from a file, from elasticsearch or piping it),
+#RETRIEVE DATA of DNS
 #for each domain and classify it as low/high priority + status info.
-#results of each domain are stored in an array of Domain objects with all their collected info.
+#results of each domain are stored in an array of Domain objects
+#with all their collected info.
 #
-#recommended execution: /usr/bin/time -o time.txt python3 retrieveData.py technic custCode [-d dictFile.json | -e GetINDEX] [-o outputFile.json | -i InsertINDEX] [-v] >> logFile.log
+#recommended execution: /usr/bin/time -o time.txt python3 retrieveData.py
+# technic custCode [-d dictFile.json | -e GetINDEX]
+# [-o outputFile.json | -i InsertINDEX] [-v] >> logFile.log
 
 #WIP: solve all TODOs for v0.7
 
@@ -41,8 +44,8 @@ class Domain:
 		self.ns = []
 		self.a = []
 		self.aaaa = []
-		self.web = [] # http reqs
-		self.webs = [] # https reqs
+		self.web = False # http reqs
+		self.webs = False # https reqs
 		self.domain = ''
 		self.subdomains = ''
 		self.test_freq = '0'
@@ -60,7 +63,8 @@ def convertDatetime(date):
 	else:
 		return False
 
-def retrieveDomainsData(custCode,technic,dictFile,elasticGetIndex,elasticInsertIndex,outputFile,verbose):
+def retrieveDomainsData(custCode,technic,dictFile,elasticGetIndex,
+	elasticInsertIndex,outputFile,verbose):
 	if outputFile:
 		outputF=open(outputFile,'w')
 		print("[",end="",file=outputF)
@@ -73,26 +77,32 @@ def retrieveDomainsData(custCode,technic,dictFile,elasticGetIndex,elasticInsertI
 	#data = data[0:1] ## PARA PRUEBA CORTA
 	for e in data:
 		results = [] # for insertESBulk
-		for dom in e['domains']: #e['domains'] contains all the variations of a combination (offDom+TLD)
+		#e['domains'] contains all the variations of a combination (offDom+TLD)
+		for dom in e['domains']:
 			d = Domain()
 			d.domain = dom['domain-name']
 			d.generation = dom['fuzzer']
 			d.customer = e['customer']
 			start_time = time()
-			get_dns(d)#; check_whois(d); get_ip(d); check_web(d); check_subomains(d)
+			get_dns(d)#; check_whois(d);get_ip(d);check_web(d);check_subomains(d)
 			end_time = time()
 			d.resolve_time = resolve_time = "{:.2f}".format(end_time-start_time)
 
 			if verbose:
-				print("%s - [%i/%i]"%(custCode,e['domains'].index(dom)+1,len(e['domains'])),
-					"[-]" if d.ip==[] else "[x]", d.domain, "(%s secs)"%(d.resolve_time))
+				print("%s - [%i/%i]"%
+					(custCode,e['domains'].index(dom)+1,len(e['domains'])),
+					"[-]" if d.ip==[] else "[x]", d.domain,
+					"(%s secs)"%(d.resolve_time))
 
 			if outputFile:
 				# print results as a json to outputF:
-				if e['domains'].index(dom)==len(e['domains'])-1: #if this dom is not the last one:
-					print(json.dumps(d, indent=2, sort_keys=True),end=",\n",file=outputF)
+				if e['domains'].index(dom)!=len(e['domains'])-1:
+					#if this dom is not the last one:
+					print(json.dumps(d.__dict__, indent=2, sort_keys=True),
+						end=",\n",file=outputF)
 				else:
-					print(json.dumps(d, indent=2, sort_keys=True),end="\n",file=outputF)
+					print(json.dumps(d.__dict__, indent=2, sort_keys=True),
+						end="\n",file=outputF)
 			elif elasticInsertIndex:
 				results.append(d.__dict__)
 		if elasticInsertIndex:
@@ -104,7 +114,7 @@ def check_whois(d):
 	# CHECK WHOIS
 	try:
 		w = whois.query(d.domain)
-		d.status = 'resolving' #FIXME: 2596 status (52,2%) stay as 'resolving', instead of 'to be verified' or 'parked'
+		d.status = 'resolving'
 		d.owner = w.name
 		d.reg_date = convertDatetime(w.last_updated)
 		d.owner_change = convertDatetime(w.last_updated)
@@ -124,8 +134,8 @@ def check_whois(d):
 			d.status = 'parked'
 	except:
 		#domain doesn't resolve:
-		#TODO: this also applies if there's a parsing error in the whois response
-		if convertDatetime(d.reg_date) > datetime.now()-timedelta(seconds=200): #"now", with a margin of 200 secs
+		if convertDatetime(d.reg_date) > datetime.now()-timedelta(seconds=200):
+			#reg_date = "now", with a margin of 200 secs:
 			#not registered (because reg_date is now):
 			d.priority = 'low'
 			d.status = 'very low priority'
@@ -138,15 +148,17 @@ def check_whois(d):
 			d.priority = 'high'
 			d.status = 'suspicious'
 	# ASSIGN TEST_FREQ
-	if d.priority=='high':
-		d.test_freq = '1'
-	elif d.priority=='low':
-		d.test_freq = '14'
+	#if d.priority=='high':
+	#	d.test_freq = '1'
+	#elif d.priority=='low':
+	#	d.test_freq = '14'
 
 def get_ip(d):
 	# GET IP
 	try:
-		d.ip.append(str(socket.gethostbyname(d.domain)))
+		newIP = socket.gethostbyname(d.domain)
+		if d.ip[-1]!=newIP: #append only if it's a new IP
+			d.ip.append(newIP)
 	except:
 		pass
 
@@ -187,16 +199,16 @@ def check_web(d):
 	# CHECK WEB
 	try:
 		requests.get('http://' + dom)
-		d.web.append(True)
+		d.web = True
 	except:
-		d.web.append(False)
+		d.web = False
 	try:
 		# in order to ignore "InsecureRequestWarning: Unverified HTTPS request is being made.":
 		requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 		requests.get('https://' + dom, verify=False)
-		d.webs.append(True)
+		d.webs = True
 	except:
-		d.webs.append(False)
+		d.webs = False
 
 def check_subdomains(d):
 	# CHECK SUBDOMAINS
@@ -205,19 +217,28 @@ def check_subdomains(d):
 
 def answer_to_list(answers):
 	# (from dnstwist)
-	return sorted(list(map(lambda record: str(record).strip(".") if len(str(record).split(' ')) == 1 else str(record).split(' ')[1].strip('.'), answers)))
+	return sorted(list(map(lambda record: str(record).strip(".") 
+		if len(str(record).split(' ')) == 1
+		else str(record).split(' ')[1].strip('.'), answers)))
 
 if __name__ == '__main__':
 
 	parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter,
-		usage="%(prog)s [opt args]\npipelining e.g.: echo \"{'fuzzer': 'Original*', 'domain-name': 'movistar.com'}\" | %(prog)s [opt args]")
-	parser.add_argument('custCode',help='e.g.: TEF_ES (usually extracted by multiRetrDat.sh)')
-	parser.add_argument('technic',help='e.g.: addition. it\'s the typosquatting technic')
+		usage="%(prog)s [opt args]\npipelining e.g.: echo \"{'fuzzer': \
+		'Original*', 'domain-name': 'movistar.com'}\" | %(prog)s [opt args]")
+	parser.add_argument('custCode',
+		help='e.g.: TEF_ES (usually extracted by multiRetrDat.sh)')
+	parser.add_argument('technic',
+		help='e.g.: addition. it\'s the typosquatting technic')
 	onlyOneGroup = parser.add_mutually_exclusive_group()
-	onlyOneGroup.add_argument('-d','--dictFile',help='e.g.: dict-37tlds.json')
-	onlyOneGroup.add_argument('-e','--elastic',metavar='INDEX',help='get data from ES')
-	parser.add_argument('-o','--outputFile',help='e.g.: output-37tlds.json')
-	parser.add_argument('-i','--insertElastic',metavar='INDEX',help='insert results (one domain at once) into ES')
+	onlyOneGroup.add_argument('-d','--dictFile',
+		help='e.g.: dict-37tlds.json')
+	onlyOneGroup.add_argument('-e','--elastic',metavar='INDEX',
+		help='get data from ES')
+	parser.add_argument('-o','--outputFile',
+		help='e.g.: output-37tlds.json')
+	parser.add_argument('-i','--insertElastic',metavar='INDEX',
+		help='insert results (one domain at once) into ES')
 	parser.add_argument('-v','--verbose',action='store_true')
 	args = parser.parse_args()
 
@@ -227,12 +248,15 @@ if __name__ == '__main__':
 	if args.dictFile or args.elastic:
 		if args.elastic:
 			es = Elasticsearch(['http://localhost:9200'])
-		retrieveDomainsData(args.custCode,args.technic,args.dictFile,args.elastic,args.insertElastic,args.outputFile,args.verbose)
+		retrieveDomainsData(args.custCode,args.technic,args.dictFile,
+			args.elastic,args.insertElastic,args.outputFile,args.verbose)
 	else:
 		# GET DNS with DomainThreads (just for piping-PoC)
 		for line in sys.stdin:
-			domain_str = '{'+line.split('{')[1] # e.g.: domain_str = "{'fuzzer': 'Original*', 'domain-name': 'movistar.com'}"
-			domain = json.loads(domain_str.replace( "'",'"')) # json needs property name to be enclosed in double quotes
+			domain_str = '{'+line.split('{')[1]
+			#e.g.: domain_str="{'fuzzer':'Original*','domain-name':'nba.com'}"
+			domain = json.loads(domain_str.replace( "'",'"'))
+			# json needs property name to be enclosed in double quotes
 
 			d = Domain()
 			d.domain = domain['domain-name']
@@ -244,5 +268,5 @@ if __name__ == '__main__':
 				if d.ns!=[]:
 					print("REGISTERED!",d.domain)
 					nregs+=1
-				print(json.dumps({"domain": d.domain, "status": d.status, "ns": d.ns}))
+				print(json.dumps({"domain":d.domain,"status":d.status,"ns":d.ns}))
 				print("[%i vars checked, %i regs]"%(len(results),nregs))

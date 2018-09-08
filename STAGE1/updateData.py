@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #author: Javier Artiga Garijo (v0.4)
-#date: 03/09/2018 (adapted for STAGE1)
+#date: 08/09/2018 (adapted for STAGE1)
 #version: 0.4 WIP ( notifications )
 #from ElasticSearch, UPDATE DATA of whois, ip, mx records, webs for each domain
 #if the domain has changed.
 #
-#usage: updateDataES.py custCode elasticSearchIndex [-v]
+#usage: updateData.py custCode elasticSearchIndex [-v]
 
 import argparse
 from datetime import timedelta, datetime
@@ -37,9 +37,7 @@ def send_email(subject, msg):
 		message['From'] = sender_gmail
 		message['To'] = receiver_gmail
 		message['Subject'] = subject
-		mailServer.sendmail(sender_gmail,
-							receiver_gmail,
-							message.as_string())
+		mailServer.sendmail(sender_gmail,receiver_gmail,message.as_string())
 	except Exception as e:
 		print('email error: ',e)
 
@@ -57,9 +55,7 @@ def send_email2(subject, msg):
 		message['From'] = sender_gmail
 		message['To'] = receiver_gmail
 		message['Subject'] = subject
-		mailServer.sendmail(sender_gmail,
-							receiver_gmail,
-							message.as_string())
+		mailServer.sendmail(sender_gmail,receiver_gmail,message.as_string())
 	except Exception as e:
 		print('email error: ',e)
 
@@ -74,6 +70,7 @@ def convertDatetime(date):
 def updateData(custCode,indexName,verbose):
 
 	data = getESDocs(indexName,custCode) # in this array goes the initial data, each customer at once
+	msg = ''
 	if verbose:
 		print(custCode,"loaded")
 
@@ -92,14 +89,18 @@ def updateData(custCode,indexName,verbose):
 				continue #ignore it (by now)
 			'''
 
-			if d_ES.test_freq=='': d_ES.test_freq='0' #TEMP PATCH
+			#if d_ES.test_freq=='': d_ES.test_freq='0' #TEMP PATCH
 			# if today is reviewing date:
 			if convertDatetime(d_ES.timestamp) + timedelta(int(d_ES.test_freq)) <= datetime.today():
 				start_time = time()
 				for field in vars(d_updated):
-					vars(d_updated)[field] = vars(d_ES)[field]
+					try: #TEMP FIX
+						vars(d_updated)[field] = vars(d_ES)[field][:] #[:] make a copy of the value, don't point to it
+					except TypeError:
+						vars(d_updated)[field] = vars(d_ES)[field]
 				d_updated.timestamp = convertDatetime(datetime.now())
-				get_dns(d_updated)#; get_ip(d_updated); check_web(d_updated); check_subdomains(d_updated); get_dns(d_updated)
+				check_whois(d_updated); get_ip(d_updated)
+				check_web(d_updated); #get_dns(d)
 				end_time = time()
 				d_updated.resolve_time = resolve_time = "{:.2f}".format(end_time-start_time)
 
@@ -114,29 +115,20 @@ def updateData(custCode,indexName,verbose):
 					if field=="timestamp" or field=="resolve_time" or field=="owner_change" or field=="creation_date" or field=="reg_date":
 						continue
 					elif vars(d_updated)[field] != vars(d_ES)[field]:
-						subject = d_updated.domain+" has changed"
-						msg = 'NOW:\n'+str(d_updated.__dict__)+'\n\nBEFORE:\n'+str(d_ES.__dict__)
-						send_email(subject, msg)
-						#send_email2(subject, msg)
+						msg += '{} in {} field. \
+NOW: {} BEFORE: {}\n'.format(d_updated.domain,field,vars(d_updated)[field],vars(d_ES)[field])
 						if verbose:
-							print("	%s has changed: %s"%(d_updated.domain,str(d_updated.__dict__)))
-				'''
-				if d_updated.ip!=d_ES.ip or d_updated.mx!=d_ES.mx or d_updated.web!=d_ES.web or d_updated.webs!=d_ES.webs:
-					dd1 = 'DOMAIN: %s , Date: %s' % (str(d_updated.domain), str(d_updated.timestamp))
-					dd2 = 'Old data: ip: %s -> r.date: %s -> mx: %s -> owner-change: %s -> subdom: %s -> web:%s -> webS:%s' % (str(d_ES.ip), str(d_ES.reg_date),
-																									  str(d_ES.mx), str(d_ES.owner_change),
-																									  str(d_ES.subdomains), str(d_ES.web),str(d_ES.webs))
-					dd3 = 'New data: ip: %s -> r.date: %s -> mx: %s -> owner-change: %s -> subdom: %s -> web:%s -> webS:%s' % (str(d_updated.ip), str(d_updated.reg_date),
-																									  str(d_updated.mx), str(d_updated.owner_change),
-																									  str(d_updated.subdomains), str(d_updated.web),str(d_updated.webs))
-					subject = 'News in ip, mx or web'
-					msg = dd1 + '\n' + dd2 + '\n' + dd3
-					send_email(subject, msg)
-					send_email2(subject, msg)
-				'''
+							print("	%s has changed in its field %s"
+								%(d_updated.domain,field))
 
 	except Exception as e:
 		print('updateData error:', e)
+
+	if msg!='': #if there's news:
+		send_email('something new in typosquatting database!', msg)
+		#send_email2(subject, msg)
+		if verbose:
+			print("mail sent.")
 
 	if verbose:
 		print("update finished.")
@@ -144,8 +136,9 @@ def updateData(custCode,indexName,verbose):
 if __name__ == '__main__':
 
 	parser = argparse.ArgumentParser()
+	parser.add_argument('custCode',help='e.g.: TEF_ES (usually extracted by multiUpDat.sh)')
 	parser.add_argument('elasticSearchIndex')
 	parser.add_argument('-v','--verbose',action='store_true')
 	args = parser.parse_args()
 
-	updateData(args.elasticSearchIndex,args.verbose)
+	updateData(args.custCode,args.elasticSearchIndex,args.verbose)

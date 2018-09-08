@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #author: Javier Artiga Garijo (v0.7)
-#date: 03/09/2018 (adapted for STAGE1)
+#date: 08/09/2018 (adapted for STAGE1)
 #version: 0.7 (without technic arg)
 #given a dictionary of domains (from a file, from elasticsearch or piping it), RETRIEVE DATA of:
 #whois, ip, dns/mx records, webs
@@ -39,8 +39,8 @@ class Domain:
 		self.ns = []
 		self.a = []
 		self.aaaa = []
-		self.web = [] # http reqs
-		self.webs = [] # https reqs
+		self.web = False # http reqs
+		self.webs = False # https reqs
 		self.domain = ''
 		self.subdomains = ''
 		self.test_freq = '0'
@@ -76,7 +76,7 @@ def retrieveDomainsData(custCode,dictFile,elasticGetIndex,elasticInsertIndex,out
 			d.domain = dom
 			d.customer = custCode
 			start_time = time()
-			get_dns(d); check_whois(d); get_ip(d); check_web(d); check_subomains(d)
+			check_whois(d); get_ip(d); check_web(d); #check_subomains(d); get_dns(d)
 			end_time = time()
 			d.resolve_time = resolve_time = "{:.2f}".format(end_time-start_time)
 
@@ -86,10 +86,10 @@ def retrieveDomainsData(custCode,dictFile,elasticGetIndex,elasticInsertIndex,out
 
 			if outputFile:
 				# print results as a json to outputF:
-				if e['domains'].index(dom)==len(e['domains'])-1: #if this dom is not the last one:
-					print(json.dumps(d, indent=2, sort_keys=True),end=",\n",file=outputF)
+				if e['domains'].index(dom)!=len(e['domains'])-1: #if this dom is not the last one:
+					print(json.dumps(d.__dict__, indent=2, sort_keys=True),end=",\n",file=outputF)
 				else:
-					print(json.dumps(d, indent=2, sort_keys=True),end="\n",file=outputF)
+					print(json.dumps(d.__dict__, indent=2, sort_keys=True),end="\n",file=outputF)
 			elif elasticInsertIndex:
 				results.append(d.__dict__)
 		if elasticInsertIndex:
@@ -142,7 +142,9 @@ def check_whois(d):
 def get_ip(d):
 	# GET IP
 	try:
-		d.ip.append(str(socket.gethostbyname(d.domain)))
+		newIP = socket.gethostbyname(d.domain)
+		if d.ip[-1]!=newIP: #append only if it's a new IP
+			d.ip.append(newIP)
 	except:
 		pass
 
@@ -183,16 +185,16 @@ def check_web(d):
 	# CHECK WEB
 	try:
 		requests.get('http://' + dom)
-		d.web.append(True)
+		d.web = True
 	except:
-		d.web.append(False)
+		d.web = False
 	try:
 		# in order to ignore "InsecureRequestWarning: Unverified HTTPS request is being made.":
 		requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 		requests.get('https://' + dom, verify=False)
-		d.webs.append(True)
+		d.webs = True
 	except:
-		d.webs.append(False)
+		d.webs = False
 
 def check_subdomains(d):
 	# CHECK SUBDOMAINS
