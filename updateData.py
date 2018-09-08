@@ -86,11 +86,7 @@ def updateData(custCode,technic,indexName,verbose):
 			# if today is reviewing date:
 			if convertDatetime(d_ES.timestamp) + timedelta(int(d_ES.test_freq)) <= datetime.today():
 				start_time = time()
-				for field in vars(d_updated):
-					try: #TEMP FIX
-						vars(d_updated)[field] = vars(d_ES)[field][:] #[:] make a copy of the value, don't point to it
-					except TypeError:
-						vars(d_updated)[field] = vars(d_ES)[field]
+				d_updated.copy(d_ES)
 				d_updated.timestamp = convertDatetime(datetime.now())
 				get_dns(d_updated)#; get_ip(d_updated); check_web(d_updated); check_subdomains(d_updated)
 				end_time = time()

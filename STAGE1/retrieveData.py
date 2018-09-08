@@ -50,6 +50,28 @@ class Domain:
 		self.timestamp = convertDatetime(datetime.now())
 		self.resolve_time = ''
 
+	def copy(self,domain):
+		self.status = domain.status
+		self.owner = domain.owner
+		self.reg_date = domain.reg_date
+		self.owner_change = domain.owner_change
+		self.creation_date = domain.creation_date
+		self.ip = domain.ip
+		self.mx = domain.mx
+		self.ns = domain.ns
+		self.a = domain.a
+		self.aaaa = domain.aaaa
+		self.web = domain.web
+		self.webs = domain.webs
+		self.domain = domain.domain
+		self.subdomains = domain.subdomains
+		self.test_freq = domain.test_freq
+		self.generation = domain.generation
+		self.customer = domain.customer
+		self.priority = domain.priority
+		self.timestamp = domain.timestamp
+		self.resolve_time = domain.resolve_time
+
 def convertDatetime(date):
 	if isinstance(date, datetime): #if argument's type is datetime
 		return date.strftime('%Y-%m-%d %H:%M:%S')
@@ -208,7 +230,8 @@ def answer_to_list(answers):
 if __name__ == '__main__':
 
 	parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter,
-		usage="%(prog)s [opt args]\npipelining e.g.: echo \"{'fuzzer': 'Original*', 'domain-name': 'movistar.com'}\" | %(prog)s [opt args]")
+		usage="%(prog)s [opt args]\nif pipelining, e.g.: echo \"{'fuzzer':\
+ 'Original*', 'domain-name': 'movistar.com'}\" | %(prog)s [opt args]")
 	parser.add_argument('custCode',help='e.g.: TEF_ES (usually extracted by multiRetrDat.sh)')
 	onlyOneGroup = parser.add_mutually_exclusive_group()
 	onlyOneGroup.add_argument('-d','--dictFile',help='e.g.: dict-37tlds.json')

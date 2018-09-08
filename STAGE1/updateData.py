@@ -93,11 +93,7 @@ def updateData(custCode,indexName,verbose):
 			# if today is reviewing date:
 			if convertDatetime(d_ES.timestamp) + timedelta(int(d_ES.test_freq)) <= datetime.today():
 				start_time = time()
-				for field in vars(d_updated):
-					try: #TEMP FIX
-						vars(d_updated)[field] = vars(d_ES)[field][:] #[:] make a copy of the value, don't point to it
-					except TypeError:
-						vars(d_updated)[field] = vars(d_ES)[field]
+				d_updated.copy(d_ES)
 				d_updated.timestamp = convertDatetime(datetime.now())
 				check_whois(d_updated); get_ip(d_updated)
 				check_web(d_updated); #get_dns(d)
@@ -118,8 +114,9 @@ def updateData(custCode,indexName,verbose):
 						msg += '{} in {} field. \
 NOW: {} BEFORE: {}\n'.format(d_updated.domain,field,vars(d_updated)[field],vars(d_ES)[field])
 						if verbose:
-							print("	%s has changed in its field %s"
-								%(d_updated.domain,field))
+							print("	%s has changed in its field %s: %s %s"
+								%(d_updated.domain,field,
+								vars(d_updated)[field],vars(d_ES)[field]))
 
 	except Exception as e:
 		print('updateData error:', e)
