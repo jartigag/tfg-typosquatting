@@ -1,16 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #author: Javier Artiga Garijo (v0.4)
-#date: 08/09/2018
-#version: 0.4 WIP ( notifications )
+#date: 09/09/2018
+#version: 0.4 ( notifications )
 #from ElasticSearch, UPDATE DATA of whois, ip, mx records, webs for each domain
 #if the domain has changed.
 #
 #usage: updateData.py custCode technic elasticSearchIndex [-v]
-
-#TO-DO LIST (08/09/2018):
-# - WIP: notifications (testing)
-# - include number of notifications
 
 import argparse
 from datetime import timedelta, datetime
@@ -64,6 +60,7 @@ def updateData(custCode,technic,indexName,verbose):
 
 	data = getESDocs(indexName,custCode) # in this array goes the initial data, each customer at once
 	msg = ''
+	nchanges = 0
 	if verbose:
 		print(custCode,"loaded")
 
@@ -103,19 +100,23 @@ def updateData(custCode,technic,indexName,verbose):
 					if field=="timestamp" or field=="resolve_time" or field=="owner_change" or field=="creation_date" or field=="reg_date":
 						continue
 					elif vars(d_updated)[field] != vars(d_ES)[field]:
+						nchanges += 1
 						msg += '{} in {} field. \
 NOW: {} BEFORE: {}\n'.format(d_updated.domain,field,vars(d_updated)[field],vars(d_ES)[field])
 						if verbose:
-							print("	%s has changed: %s"%(d_updated.domain,str(d_updated.__dict__)))
+							print("	%s has changed in its field %s: %s %s"
+								%(d_updated.domain,field,
+								vars(d_updated)[field],vars(d_ES)[field]))
 
 	except Exception as e:
 		print('updateData error:', e)
 
 	if msg!='': #if there's news:
-		send_email('something new in typosquatting database!', msg)
+		send_email('something new for {}\
+ in typosquatting database!'.format(custCode), msg)
 		#send_email2(subject, msg)
 		if verbose:
-			print("mail sent.")
+			print("mail with {} changes for {} sent.".format(nchanges,custCode))
 
 	if verbose:
 		print("update finished.")

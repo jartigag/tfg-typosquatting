@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #author: Javier Artiga Garijo (v0.4)
-#date: 08/09/2018 (adapted for STAGE1)
-#version: 0.4 WIP ( notifications )
+#date: 09/09/2018 (adapted for STAGE1)
+#version: 0.4 ( notifications )
 #from ElasticSearch, UPDATE DATA of whois, ip, mx records, webs for each domain
 #if the domain has changed.
 #
@@ -71,6 +71,7 @@ def updateData(custCode,indexName,verbose):
 
 	data = getESDocs(indexName,custCode) # in this array goes the initial data, each customer at once
 	msg = ''
+	nchanges = 0
 	if verbose:
 		print(custCode,"loaded")
 
@@ -111,6 +112,7 @@ def updateData(custCode,indexName,verbose):
 					if field=="timestamp" or field=="resolve_time" or field=="owner_change" or field=="creation_date" or field=="reg_date":
 						continue
 					elif vars(d_updated)[field] != vars(d_ES)[field]:
+						nchanges += 1
 						msg += '{} in {} field. \
 NOW: {} BEFORE: {}\n'.format(d_updated.domain,field,vars(d_updated)[field],vars(d_ES)[field])
 						if verbose:
@@ -122,10 +124,11 @@ NOW: {} BEFORE: {}\n'.format(d_updated.domain,field,vars(d_updated)[field],vars(
 		print('updateData error:', e)
 
 	if msg!='': #if there's news:
-		send_email('something new in typosquatting database!', msg)
+		send_email('{} changes for {}\
+ in typosquatting database!'.format(nchanges,custCode), msg)
 		#send_email2(subject, msg)
 		if verbose:
-			print("mail sent.")
+			print("mail with {} changes for {} sent.".format(nchanges,custCode))
 
 	if verbose:
 		print("update finished.")
