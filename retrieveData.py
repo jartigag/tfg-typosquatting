@@ -108,7 +108,7 @@ def retrieveDomainsData(custCode,technic,dictFile,elasticGetIndex,
 			start_time = time()
 			get_dns(d)#; check_whois(d);get_ip(d);check_web(d);check_subomains(d)
 			end_time = time()
-			d.resolve_time = resolve_time = "{:.2f}".format(end_time-start_time)
+			d.resolve_time = "{:.2f}".format(end_time-start_time)
 
 			if verbose:
 				print("%s - [%i/%i]"%
@@ -225,7 +225,7 @@ def check_web(d):
 	except:
 		d.web = False
 	try:
-		# in order to ignore "InsecureRequestWarning: Unverified HTTPS request is being made.":
+		# to ignore "InsecureRequestWarning: Unverified HTTPS request.":
 		requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 		requests.get('https://' + dom, verify=False)
 		d.webs = True

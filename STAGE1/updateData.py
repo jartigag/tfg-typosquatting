@@ -99,7 +99,7 @@ def updateData(custCode,indexName,verbose):
 				check_whois(d_updated); get_ip(d_updated)
 				check_web(d_updated); #get_dns(d)
 				end_time = time()
-				d_updated.resolve_time = resolve_time = "{:.2f}".format(end_time-start_time)
+				d_updated.resolve_time = "{:.2f}".format(end_time-start_time)
 
 				if verbose:
 					print("%s - [%i/%i]"%(custCode,data.index(dom)+1,len(data)),
@@ -126,7 +126,8 @@ NOW: {} BEFORE: {}\n'.format(d_updated.domain,field,vars(d_updated)[field],vars(
 	if msg!='': #if there's news:
 		send_email('{} changes for {}\
  in typosquatting database!'.format(nchanges,custCode), msg)
-		#send_email2(subject, msg)
+		send_email2('{} changes for {}\
+ in typosquatting database!'.format(nchanges,custCode), msg)
 		if verbose:
 			print("mail with {} changes for {} sent.".format(nchanges,custCode))
 
