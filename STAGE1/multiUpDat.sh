@@ -7,8 +7,8 @@
 # execute updateData.py on multiple processes (one for each customer)
 # usage: bash multiUpDat.sh ESindex
 #
-# crontab: 0 2,10,18 * * * date >> ~/STAGE1/log-multiUpDat.sh
-# crontab: 0 2,10,18 * * * bash ~/STAGE1/multiUpDat.sh data >> ~/STAGE1/log-multiUpDat.sh
+# crontab: 0 2,10,18 * * * date >> ~/STAGE1/log-multiUpDat.txt
+# crontab: 0 2,10,18 * * * bash ~/STAGE1/multiUpDat.sh data >> ~/STAGE1/log-multiUpDat.txt
 
 echo "$(date) - running script.."
 # custList = []
@@ -26,5 +26,5 @@ do
                 >> ~/STAGE1/logs/logs-upDat/log-$cust.log #&
         echo "$(date) - $cust's data updated"
 done
-#ps -AF | grep python3
+python3 ~/STAGE1/sendNotifs.py
 echo "$(date) - script done."

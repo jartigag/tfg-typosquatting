@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-#author: Javier Artiga Garijo (v0.4)
-#date: 09/09/2018 (adapted for STAGE1)
-#version: 0.4 ( notifications )
+#author: Javier Artiga Garijo (v0.5)
+#date: 12/09/2018 (adapted for STAGE1)
+#version: 0.5 ( all notifs. in one email )
 #from ElasticSearch, UPDATE DATA of whois, ip, mx records, webs for each domain
 #if the domain has changed.
 #
@@ -109,7 +109,9 @@ def updateData(custCode,indexName,verbose):
 
 				# if something has changed:
 				for field in vars(d_updated):
-					if field=="timestamp" or field=="resolve_time" or field=="owner_change" or field=="creation_date" or field=="reg_date":
+					if field=="timestamp" or field=="resolve_time" \
+or field=="owner_change" or field=="creation_date" or field=="reg_date" \
+					or field=="status" or field=="priority":
 						continue
 					elif vars(d_updated)[field] != vars(d_ES)[field]:
 						nchanges += 1
@@ -124,12 +126,12 @@ NOW: {} BEFORE: {}\n'.format(d_updated.domain,field,vars(d_updated)[field],vars(
 		print('updateData error:', e)
 
 	if msg!='': #if there's news:
-		send_email('{} changes for {}\
- in typosquatting database!'.format(nchanges,custCode), msg)
-		send_email2('{} changes for {}\
- in typosquatting database!'.format(nchanges,custCode), msg)
+		with open('notifs-content.txt','a') as f:
+			print('{} changes for {}\
+ in typosquatting database!'.format(nchanges,custCode), file=f)
+			print(msg, "\n", file=f)
 		if verbose:
-			print("mail with {} changes for {} sent.".format(nchanges,custCode))
+			print("notif. with {} changes for {} ready.".format(nchanges,custCode))
 
 	if verbose:
 		print("update finished.")
