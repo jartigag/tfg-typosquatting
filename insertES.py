@@ -14,7 +14,9 @@ from elasticsearch import Elasticsearch, helpers
 import argparse
 import requests
 
-es = Elasticsearch('http://localhost:9200')
+ip = 'localhost'
+port = '9200'
+es = Elasticsearch('http://{}:{}'.format(ip,port))
 
 def insertES(data,index):
 	mapping = {
@@ -113,11 +115,11 @@ def es_search_scroll(index, body=None, scroll_id=None, scroll_duration="1m"):
 	# Prepare the URL and the body depending on the first call or other
 	url = ""
 	if body and scroll_duration:
-		url = 'http://localhost:9200/' + index + \
+		url = 'http://{}:{}'.format(ip,port) + index + \
 			"/_search?scroll=%s" % scroll_duration
 	else:
 		if scroll_id and scroll_duration:
-			url = 'http://localhost:9200/' + "_search/scroll"
+			url = 'http://{}:{}'.format(ip,port) + "_search/scroll"
 			body = {
 				"scroll" : scroll_duration,
 				"scroll_id": scroll_id
