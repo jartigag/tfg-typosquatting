@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-#author: Javier Artiga Garijo (v0.7)
-#date: 29/08/2018
-#version: 0.7 ( retrieveDomainsData(..,technic,..) )
+#author: Javier Artiga Garijo (v0.8)
+#date: 24/09/2018
+#version: 0.8 ( priority criteria based on dns )
 #given a dictionary of domains (from a file, from elasticsearch or piping it),
 #RETRIEVE DATA of DNS
 #for each domain and classify it as low/high priority + status info.
@@ -12,8 +12,6 @@
 #recommended execution: /usr/bin/time -o time.txt python3 retrieveData.py
 # technic custCode [-d dictFile.json | -e GetINDEX]
 # [-o outputFile.json | -i InsertINDEX] [-v] >> logFile.log
-
-#WIP: solve all TODOs for v0.7
 
 import argparse
 from datetime import date, timedelta, datetime
@@ -142,7 +140,6 @@ def check_whois(d):
 		d.owner_change = convertDatetime(w.last_updated)
 		d.creation_date = convertDatetime(w.creation_date)
 		# ASSIGN PRIORITY
-		# TODO: change criteria for how priority is assigned (out of check_whois)
 		#domain resolves:
 		if convertDatetime(d.reg_date)==False:
 			pass #to discard wrong reg_dates
@@ -170,10 +167,10 @@ def check_whois(d):
 			d.priority = 'high'
 			d.status = 'suspicious'
 	# ASSIGN TEST_FREQ
-	#if d.priority=='high':
-	#	d.test_freq = '1'
-	#elif d.priority=='low':
-	#	d.test_freq = '14'
+	if d.priority=='high':
+		d.test_freq = '1'
+	elif d.priority=='low':
+		d.test_freq = '14'
 
 def get_ip(d):
 	# GET IP
@@ -196,6 +193,21 @@ def get_dns(d):
 		pass
 
 	if d.ns!=[]:
+		#domain's dns request resolves:
+		# ASSIGN PRIORITY
+		if convertDatetime(d.reg_date)==False:
+			pass #to discard wrong reg_dates
+		elif convertDatetime(d.reg_date)+timedelta(days=7) < datetime.now():
+			#registered less than 1 week ago:
+			d.priority = 'high'
+			d.status = 'to be verified'
+		else:
+			#registered more than 1 week ago:
+			d.priority = 'low'
+			d.status = 'parked'
+		except:
+
+		# fill the corresponding fields:
 		try:
 			ans = resolv.query(d.domain, 'A')
 			#for rdata in sorted(ans):
@@ -216,6 +228,27 @@ def get_dns(d):
 			d.mx.append(answer_to_list(ans))
 		except DNSException:
 			pass
+	else:
+		#domain's dns request doesn't resolve:
+		if convertDatetime(d.reg_date) > datetime.now()-timedelta(seconds=200):
+			#reg_date = "now", with a margin of 200 secs:
+			#not registered (because reg_date is now):
+			d.priority = 'low'
+			d.status = 'very low priority'
+		elif convertDatetime(d.reg_date) > datetime.now()-timedelta(days=7):
+			#registered less than 1 week ago:
+			d.priority = 'high'
+			d.status = 'very suspicious'
+		else:
+			#registered more than 1 week ago:
+			d.priority = 'high'
+			d.status = 'suspicious'
+
+	# ASSIGN TEST_FREQ
+	if d.priority=='high':
+		d.test_freq = '1'
+	elif d.priority=='low':
+		d.test_freq = '14'
 
 def check_web(d):
 	# CHECK WEB
