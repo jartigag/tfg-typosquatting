@@ -110,8 +110,7 @@ def updateData(custCode,indexName,verbose):
 				# if something has changed:
 				for field in vars(d_updated):
 					if field=="timestamp" or field=="resolve_time" \
-					or field=="status" or field=="priority" \
-or field=="owner_change" or field=="creation_date" or field=="reg_date":
+					or field=="status" or field=="priority":
 						continue
 					elif vars(d_updated)[field] != vars(d_ES)[field]:
 						nchanges += 1

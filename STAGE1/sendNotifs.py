@@ -19,6 +19,10 @@ with open('notifs-content.txt','r') as f:
 #send notifications:
 with open('notifs-content.txt','r') as f:
 	send_email('{} changes \
-		in typosquatting database!'.format(numbNotifs),f.read())
+		in typosquatting database (stage 1)!'.format(numbNotifs),f.read())
 	send_email2('{} changes \
-		in typosquatting database!'.format(numbNotifs),f.read())
+		in typosquatting database (stage 1)!'.format(numbNotifs),f.read())
+
+#clean temp file
+with open('notifs-content.txt','w') as f:
+	print("",file=f)

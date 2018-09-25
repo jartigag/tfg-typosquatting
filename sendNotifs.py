@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #author: Javier Artiga Garijo (v0.1)
-#date: 12/09/2018 (adapted for STAGE1)
+#date: 24/09/2018
 #version: 0.1 ( all notifs. in one email )
 #send notifs-content.txt by email
 #
@@ -19,9 +19,9 @@ with open('notifs-content.txt','r') as f:
 #send notifications:
 with open('notifs-content.txt','r') as f:
 	send_email('{} changes \
-		in typosquatting database!'.format(numbNotifs),f.read())
+		in typosquatting database (stage 2)!'.format(numbNotifs),f.read())
 	send_email2('{} changes \
-		in typosquatting database!'.format(numbNotifs),f.read())
+		in typosquatting database (stage 2)!'.format(numbNotifs),f.read())
 
 #clean temp file
 with open('notifs-content.txt','w') as f:

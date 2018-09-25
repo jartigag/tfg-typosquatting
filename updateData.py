@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #author: Javier Artiga Garijo (v0.6)
-#date: 24/09/2018
+#date: 25/09/2018
 #version: 0.6 ( priority criteria based on dns )
-#from ElasticSearch, UPDATE DATA of whois, ip, mx records, webs for each domain
+#from ElasticSearch, UPDATE DATA of each domain
 #if the domain has changed.
 #
 #usage: updateData.py custCode technic elasticSearchIndex [-v]
@@ -16,44 +16,44 @@ import smtplib
 from email.mime.text import MIMEText
 from elasticsearch import Elasticsearch
 from retrieveData import Domain,convertDatetime,get_dns
-	#,check_whois,get_ip,check_web,check_subdomains
+		#,check_whois,get_ip,check_web,check_subdomains
 from insertES import updateES, getESDocs
 
 def send_email(subject, msg):
-	sender_gmail = 'typosquattingnotifications.11p@gmail.com'
-	password_gmail = 'innovation123abc..'
-	receiver_gmail = 'typosquattingnotifications.11p@gmail.com'
-	try:
-		mailServer = smtplib.SMTP('smtp.gmail.com', 587)
-		mailServer.ehlo()
-		mailServer.starttls()
-		mailServer.ehlo()
-		mailServer.login(sender_gmail, password_gmail)
-		message = MIMEText(msg)
-		message['From'] = sender_gmail
-		message['To'] = receiver_gmail
-		message['Subject'] = subject
-		mailServer.sendmail(sender_gmail,receiver_gmail,message.as_string())
-	except Exception as e:
-		print('email error: ',e)
+		sender_gmail = 'typosquattingnotifications.11p@gmail.com'
+		password_gmail = 'innovation123abc..'
+		receiver_gmail = 'typosquattingnotifications.11p@gmail.com'
+		try:
+			mailServer = smtplib.SMTP('smtp.gmail.com', 587)
+			mailServer.ehlo()
+			mailServer.starttls()
+			mailServer.ehlo()
+			mailServer.login(sender_gmail, password_gmail)
+			message = MIMEText(msg)
+			message['From'] = sender_gmail
+			message['To'] = receiver_gmail
+			message['Subject'] = subject
+			mailServer.sendmail(sender_gmail,receiver_gmail,message.as_string())
+		except Exception as e:
+			print('email error: ',e)
 
 def send_email2(subject, msg):
-	sender_gmail = 'typosquattingnotifications.11p@gmail.com'
-	password_gmail = 'innovation123abc..'
-	receiver_gmail = 'tags.threats.analysis@telefonica.com'
-	try:
-		mailServer = smtplib.SMTP('smtp.gmail.com', 587)
-		mailServer.ehlo()
-		mailServer.starttls()
-		mailServer.ehlo()
-		mailServer.login(sender_gmail, password_gmail)
-		message = MIMEText(msg)
-		message['From'] = sender_gmail
-		message['To'] = receiver_gmail
-		message['Subject'] = subject
-		mailServer.sendmail(sender_gmail,receiver_gmail,message.as_string())
-	except Exception as e:
-		print('email error: ',e)
+		sender_gmail = 'typosquattingnotifications.11p@gmail.com'
+		password_gmail = 'innovation123abc..'
+		receiver_gmail = 'tags.threats.analysis@telefonica.com'
+		try:
+			mailServer = smtplib.SMTP('smtp.gmail.com', 587)
+			mailServer.ehlo()
+			mailServer.starttls()
+			mailServer.ehlo()
+			mailServer.login(sender_gmail, password_gmail)
+			message = MIMEText(msg)
+			message['From'] = sender_gmail
+			message['To'] = receiver_gmail
+			message['Subject'] = subject
+			mailServer.sendmail(sender_gmail,receiver_gmail,message.as_string())
+		except Exception as e:
+			print('email error: ',e)
 
 def updateData(custCode,technic,indexName,verbose):
 
@@ -81,7 +81,7 @@ def updateData(custCode,technic,indexName,verbose):
 
 			# if today is reviewing date:
 			if convertDatetime(d_ES.timestamp)+timedelta(int(d_ES.test_freq))\
-					<= datetime.today():
+							<= datetime.today():
 				start_time = time()
 				d_updated.copy(d_ES)
 				d_updated.timestamp = convertDatetime(datetime.now())
@@ -110,33 +110,33 @@ def updateData(custCode,technic,indexName,verbose):
 						msg += '{} in {} field. NOW: {} BEFORE: {}\n'\
 .format(d_updated.domain,field,vars(d_updated)[field],vars(d_ES)[field])
 						if verbose:
-							print("	%s has changed in its field %s: %s %s"
-								%(d_updated.domain,field,
-								vars(d_updated)[field],vars(d_ES)[field]))
+							print(" %s has changed in its field %s: %s %s"
+									%(d_updated.domain,field,
+									vars(d_updated)[field],vars(d_ES)[field]))
 
 	except Exception as e:
 		print('updateData error:', e)
 
 	if msg!='': #if there's news:
-		send_email('something new for {}\
- in typosquatting database!'.format(custCode), msg)
-		send_email2('{} changes for {}\
- in typosquatting database!'.format(nchanges,custCode), msg)
+		with open('notifs-content.txt','a') as f:
+			print('{} changes for {}\
+ in typosquatting database!'.format(nchanges,custCode), file=f)
+			print(msg, "\n", file=f)
 		if verbose:
-			print("mail with {} changes for {} sent.".format(nchanges,custCode))
+			print("notif. with {} changes for {} ready.".format(nchanges,custCode))
 
 	if verbose:
 		print("update finished.")
 
 if __name__ == '__main__':
 
-	parser = argparse.ArgumentParser()
-	parser.add_argument('custCode',
-		help='e.g.: TEF_ES (usually extracted by multiUpDat.sh)')
-	parser.add_argument('technic',
-		help='e.g.: addition. it\'s the typosquatting technic')
-	parser.add_argument('elasticSearchIndex')
-	parser.add_argument('-v','--verbose',action='store_true')
-	args = parser.parse_args()
+		parser = argparse.ArgumentParser()
+		parser.add_argument('custCode',
+				help='e.g.: TEF_ES (usually extracted by multiUpDat.sh)')
+		parser.add_argument('technic',
+				help='e.g.: addition. it\'s the typosquatting technic')
+		parser.add_argument('elasticSearchIndex')
+		parser.add_argument('-v','--verbose',action='store_true')
+		args = parser.parse_args()
 
-	updateData(args.custCode,args.technic,args.elasticSearchIndex,args.verbose)
+		updateData(args.custCode,args.technic,args.elasticSearchIndex,args.verbose)
