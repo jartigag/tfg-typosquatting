@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-#author: Javier Artiga Garijo (v0.1)
+#author: Javier Artiga Garijo
 #date: 21/06/2018
 #version: 0.1
 # extract ccTLDs from .dat files (which contain official domains)
@@ -27,8 +27,10 @@ for d in doms:
 		if '/' in u:
 			print("error:",u,"in",files[doms.index(d)])
 			u = u.split('/',1)[0] # discard path behind /
-		if '.com.' in u or '.org.' in u or '.co.' in u or '.nom.' in u: #TODO: generalize this condition
-			tlds.append('.'+u.rsplit('.',2)[1].lower()+'.'+u.rsplit('.',2)[2].lower())
+		# this condition might be generalized:
+		if '.com.' in u or '.org.' in u or '.co.' in u or '.nom.' in u: 
+			tlds.append('.'+u.rsplit('.',2)[1].lower()\
+				+'.'+u.rsplit('.',2)[2].lower())
 		else:
 			try:
 				tlds.append('.'+u.rsplit('.',1)[1].lower())

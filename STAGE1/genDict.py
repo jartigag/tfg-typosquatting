@@ -53,12 +53,12 @@ def genDict(tldsFile,domainsDir,verbose):
 	if verbose:
 		print("TOTAL domains:",ndoms)
 		print("TOTAL combinations (with duplicates):",ncombs)
-		print("removing duplicates")
+		print("removing duplicated domains...")
 		c=0
 		for r in result:
 			c+=len(r['domains'])
 		print("TOTAL COMBINATIONS:",c,
-			"(%i duplicates domains removed)"%(ncombs-c))
+			"(%i duplicates removed)"%(ncombs-c))
 
 	return result
 

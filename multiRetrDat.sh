@@ -9,14 +9,14 @@
 
 echo "$(date) - running script.."
 
-arrFiles=(DAT/*)
+arrFiles=(files/DAT/*)
 
 for i in ${!arrFiles[@]}
 #The keys are accessed using an exclamation point: ${!array[@]}, the values are accessed using ${array[@]}
 do
-    echo "$i" #DEBUGGING
     if (( $i%5==0 )) #to run in rows of five
     then
+    echo "$i" #DEBUGGING
     name5=$(basename ${arrFiles[$i]})
     name4=$(basename ${arrFiles[$i-1]})
     name3=$(basename ${arrFiles[$i-2]})
@@ -45,7 +45,7 @@ do
     echo "$(date) - $cust2's data running.."
     /usr/bin/time -o times/time-retrDat-$cust1.txt \
                 python3 retrieveData.py $cust1 '*' -e $1 -i $2 -v \
-                >> logs/logs-retrDat/log-$cust1.log #don't send to bg
+                >> logs/logs-retrDat/log-$cust1.log &
         echo "$(date) - $cust1's data running.."
         fi
     done

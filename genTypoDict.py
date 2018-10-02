@@ -36,7 +36,6 @@ def genDict(tldsFile,domainsDir,outputDictFile,verbose,reallyVerbose,
 	ndoms=0
 	ncombs=0
 	totalnvars=0
-	#for c in os.listdir(domainsDir)[0:1]: ## PARA PRUEBA CORTA
 	for c in os.listdir(domainsDir):
 		combs = [] # # array with domains combinations for a client
 		cust_code = c.split('_-_')[0] # customer code

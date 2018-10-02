@@ -7,8 +7,6 @@
 # split typoDict.json in cust_codeDict.json files
 # usage: bash splitTypoDict.sh compact-typoDict.json
 
-#end=$(wc -l < $1)
-#for i in {1..$end}
 mkdir typoDicts
 lastCustCode="-"
 i=-1 # first 2 typoDicts are invalid and will be removed
@@ -16,7 +14,7 @@ while read line
 do
 	custDict=${line::-1} # line="{custDict},"
 	quotedCustCode=$(echo $custDict | jq -c -M '.customer')
-	custCode=${quotedCustCode//\"} # remove double quotes
+	custCode=${quotedCustCode//\"} # remove double quotes \"
 
 	#all domains in same file ($custCode-typoDict.json)
 	if [[ $custCode == $lastCustCode ]]

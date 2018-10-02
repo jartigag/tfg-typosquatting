@@ -3,8 +3,8 @@
 #author: Javier Artiga Garijo
 #date: 24/08/2018
 #version: 1.0
-# remove invalid domains and duplicates 
-# from the official domains .csv files and dump results
+# remove invalid domains and duplicates
+# from the official domains .txt files and dump results
 
 #usage: sanitizeDoms.py directory
 
@@ -33,13 +33,13 @@ def check_dups():
 		for other_customer_doms in doms[pos+1:]:
 			other_pos = doms.index(other_customer_doms)
 			if set(customer_doms) & set(other_customer_doms):
-				print("\033[1mduplicated domain(s)\033[0m:\n%s <-> %s" % 
-          (files[pos],files[other_pos]))
-        # print domains in common:
-				print(set(customer_doms) & set(other_customer_doms),'\n') 
+				print("\033[1mduplicated domain(s)\033[0m:\n%s <-> %s" %
+				(files[pos],files[other_pos]))
+				# print domains in common:
+				print(set(customer_doms) & set(other_customer_doms),'\n')
 				# remove dups from last other customer's doms:
-        doms[other_pos] = \
-        list( set(doms[other_pos]).difference(customer_doms) )
+				doms[other_pos] = \
+				list( set(doms[other_pos]).difference(customer_doms) )
 
 def check_invalids():
 	global final_ndoms
@@ -63,20 +63,20 @@ def check_invalids():
 		final_ndoms += len(customer_doms)
 
 def dump_data():
-	for customer_doms in doms:
-		pos = doms.index(customer_doms)
-		f = open(files[pos].replace('.csv','.dat'),'w+')
-		print(customer_doms,file=f)
+	for customer in doms:
+		pos = doms.index(customer)
+		f = open(files[pos].replace('.txt','.dat'),'w+')
+		for d in doms[pos]:
+			print(d,file=f)
 
 if __name__ == '__main__':
 
 	parser = argparse.ArgumentParser()
-	parser.add_argument('directory',help='e.g.: STAGE1/offDoms/csv/')
+	parser.add_argument('directory',help='e.g.: STAGE1/originals/txt/')
 	args = parser.parse_args()
-
 	load_files(args.directory)
 	print(">> \033[1m%s\033[0m domains (before checking duplicates \
-    and invalids):\n"%(initial_ndoms))
+and invalids):\n"%(initial_ndoms))
 	check_dups()
 	check_invalids()
 	print("\n\n>> \033[1m%s\033[0m domains (after checking):"%(final_ndoms),

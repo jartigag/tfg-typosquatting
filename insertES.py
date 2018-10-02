@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #author: Javier Artiga Garijo (v0.7.1)
-#date: 29/08/2018
+#date: 31/08/2018
 #version: 0.7.1 ( getESDocs(index, customer='*', technic='*') )
 #INSERT data from a file into ELASTICSEARCH
 #
 #usage: insertES.py dataFile.json elasticSearchIndex
-
-#WIP: mapping
 
 import json
 from elasticsearch import Elasticsearch, helpers
@@ -16,7 +14,7 @@ import requests
 
 ip = 'localhost'
 port = '9200'
-es = Elasticsearch('http://{}:{}'.format(ip,port))
+es = Elasticsearch('http://{}:{}/'.format(ip,port))
 
 def insertES(data,index):
 	mapping = {
@@ -45,14 +43,6 @@ def insertES(data,index):
 	}
 	es.indices.create(index=index,ignore=400, body=mapping)
 	body = str(data).replace( "'",'"')
-	# for d in data:
-	# 	body = '{"doc": {'
-	# 	l = list(d)
-	# 	for i in l:
-	# 		if not l.index(i)==len(l)-1:
-	# 			body+='"'+i+'":"'+str(d[i])+'",'
-	# 		else:
-	# 			body+='"'+i+'":"'+str(d[i])+'"}}'
 	es.index(index=index, doc_type='domain', body=body)
 
 def updateES(domain,data,index):
@@ -97,8 +87,6 @@ def getESDocs(index, customer='*', technic='*'):
 	# (from a @julgoor's chunk of code)
 	### Prepare the query
 	body = {"query": { "match": { "customer":  customer }}, "size": 500}
-	#body = {"query":{"bool":{"must":[ {"match":{"customer":customer}},
-	# {"match":{"generation":technic}} ] }}, "size": 500}
 	# Launch the initial query
 	results = es_search_scroll(index, body)
 	# Clean the results
@@ -106,20 +94,20 @@ def getESDocs(index, customer='*', technic='*'):
 	if 'hits' in results and 'hits' in results['hits']:
 		while results['hits']['hits']:
 			documents.extend(results['hits']['hits'])
-			results = es_search_scroll(index, scroll_id=results['_scroll_id'])
+			results=es_search_scroll(index,scroll_id=results['_scroll_id'])
 	return [ p["_source"] for p in documents ]
 
-def es_search_scroll(index, body=None, scroll_id=None, scroll_duration="1m"):
+def es_search_scroll(index,body=None,scroll_id=None,scroll_duration="1m"):
 	# (from a @julgoor's chunk of code)
 	'''Launch a query directly to ES'''
 	# Prepare the URL and the body depending on the first call or other
 	url = ""
 	if body and scroll_duration:
-		url = 'http://{}:{}'.format(ip,port) + index + \
+		url = 'http://{}:{}/'.format(ip,port) + index + \
 			"/_search?scroll=%s" % scroll_duration
 	else:
 		if scroll_id and scroll_duration:
-			url = 'http://{}:{}'.format(ip,port) + "_search/scroll"
+			url = 'http://{}:{}/'.format(ip,port) + "_search/scroll"
 			body = {
 				"scroll" : scroll_duration,
 				"scroll_id": scroll_id

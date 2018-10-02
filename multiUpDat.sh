@@ -7,17 +7,17 @@
 # execute updateData.py on multiple processes (one for each customer)
 # usage: bash multiUpDat.sh ESindex
 #
-# crontab: 30 2,10,18 * * * date >> ~/log-multiUpDat.txt
-# crontab: 30 2,10,18 * * * bash ~/multiUpDat.sh data >> ~/log-multiUpDat.txt
+# 30 2,10,18 * * * date >> ~/log-multiUpDat.txt
+# 30 2,10,18 * * * bash ~/multiUpDat.sh results >> ~/log-multiUpDat.txt
 
 echo "$(date) - running script.."
-arrFiles=(~/STAGE1/files/DAT/*)
+arrFiles=(~/files/DAT/*)
 for filename in ${arrFiles[@]}
 do
         name=$(basename $filename)
         cust=${name%_-_*} #cust=filename.split('_-_')[0]
         /usr/bin/time -o ~/times/time-upDat-$cust.txt \
-                python3 ~/updateData.py $cust $1 -v \
+                python3 ~/updateData.py $cust '*' $1 -v \
                 >> ~/logs/logs-upDat/log-$cust.log #&
         echo "$(date) - $cust's data updated"
 done

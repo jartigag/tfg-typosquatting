@@ -17,14 +17,6 @@ es = Elasticsearch(['http://localhost:9200'])
 def insertES(data,index):
 	es.indices.create(index=index,ignore=400)
 	body = str(data).replace( "'",'"')
-	# for d in data: #TODO: revisar estos dos bucles
-	# 	body = '{"doc": {'
-	# 	l = list(d)
-	# 	for i in l:
-	# 		if not l.index(i)==len(l)-1:
-	# 			body+='"'+i+'":"'+str(d[i])+'",'
-	# 		else:
-	# 			body+='"'+i+'":"'+str(d[i])+'"}}'
 	es.index(index=index, doc_type='string', body=body, id=d['domain'])
 
 def updateES(domain,data,index):
@@ -32,7 +24,8 @@ def updateES(domain,data,index):
 	body = {"query": {"match": {"domain": {"query": domain}}},"size": 500}
 	res = es_search_scroll(index, body)
 	#then update the matching doc:
-	es.update(index=index, doc_type='domain', id=res['hits']['hits'][0]['_id'], body={"doc": data})
+	es.update(index=index, doc_type='domain',
+		id=res['hits']['hits'][0]['_id'], body={"doc": data})
 
 def insertESBulk(documents,index):
 	# (from a @julgoor's chunk of code)
@@ -68,7 +61,6 @@ def getESDocs(index, customer='*', technic='*'):
 	# (from a @julgoor's chunk of code)
 	### Prepare the query
 	body = {"query": { "match": { "customer":  customer }}, "size": 500}
-	#body = {"query": {"bool": {"must": [ { "match": { "customer":  customer }}, { "match": { "generation": technic }} ] }}, "size": 500}
 	# Launch the initial query
 	results = es_search_scroll(index, body)
 	# Clean the results

@@ -3,7 +3,7 @@
 #author: Javier Artiga Garijo (v0.8)
 #date: 24/09/2018
 #version: 0.8 ( priority criteria based on dns )
-#given a dictionary of domains (from a file, from elasticsearch or piping it),
+#given a dictionary of domains (from file, elasticsearch or piping it),
 #RETRIEVE DATA of DNS
 #for each domain and classify it as low/high priority + status info.
 #results of each domain are stored in an array of Domain objects
@@ -94,17 +94,16 @@ def retrieveDomainsData(custCode,technic,dictFile,elasticGetIndex,
 		data = getESDocs(elasticGetIndex,custCode,technic)
 		if verbose:
 			print(custCode,"loaded")
-	#data = data[0:1] ## PARA PRUEBA CORTA
 	for e in data:
 		results = [] # for insertESBulk
-		#e['domains'] contains all the variations of a combination (offDom+TLD)
+#e['domains'] contains all the variations of a combination (offDom+TLD)
 		for dom in e['domains']:
 			d = Domain()
 			d.domain = dom['domain-name']
 			d.generation = dom['fuzzer']
 			d.customer = e['customer']
 			start_time = time()
-			get_dns(d)#; check_whois(d);get_ip(d);check_web(d);check_subomains(d)
+			get_dns(d)
 			end_time = time()
 			d.resolve_time = "{:.2f}".format(end_time-start_time)
 
@@ -130,57 +129,6 @@ def retrieveDomainsData(custCode,technic,dictFile,elasticGetIndex,
 	if outputFile:
 		print("]",file=outputF)
 
-def check_whois(d):
-	# CHECK WHOIS
-	try:
-		w = whois.query(d.domain)
-		d.status = 'resolving'
-		d.owner = w.name
-		d.reg_date = convertDatetime(w.last_updated)
-		d.owner_change = convertDatetime(w.last_updated)
-		d.creation_date = convertDatetime(w.creation_date)
-		# ASSIGN PRIORITY
-		#domain resolves:
-		if convertDatetime(d.reg_date)==False:
-			pass #to discard wrong reg_dates
-		elif convertDatetime(d.reg_date)+timedelta(days=7) < datetime.now():
-			#registered less than 1 week ago:
-			d.priority = 'high'
-			d.status = 'to be verified'
-		else:
-			#registered more than 1 week ago:
-			d.priority = 'low'
-			d.status = 'parked'
-	except:
-		#domain doesn't resolve:
-		if convertDatetime(d.reg_date) > datetime.now()-timedelta(seconds=200):
-			#reg_date = "now", with a margin of 200 secs:
-			#not registered (because reg_date is now):
-			d.priority = 'low'
-			d.status = 'very low priority'
-		elif convertDatetime(d.reg_date) > datetime.now()-timedelta(days=7):
-			#registered less than 1 week ago:
-			d.priority = 'high'
-			d.status = 'very suspicious'
-		else:
-			#registered more than 1 week ago:
-			d.priority = 'high'
-			d.status = 'suspicious'
-	# ASSIGN TEST_FREQ
-	if d.priority=='high':
-		d.test_freq = '1'
-	elif d.priority=='low':
-		d.test_freq = '14'
-
-def get_ip(d):
-	# GET IP
-	try:
-		newIP = socket.gethostbyname(d.domain)
-		if d.ip[-1]!=newIP: #append only if it's a new IP
-			d.ip.append(newIP)
-	except:
-		pass
-
 def get_dns(d):
 	resolv = dns.resolver.Resolver()
 	resolv.lifetime = REQUEST_TIMEOUT_DNS
@@ -205,7 +153,6 @@ def get_dns(d):
 			#registered more than 1 week ago:
 			d.priority = 'low'
 			d.status = 'parked'
-		except:
 
 		# fill the corresponding fields:
 		try:
@@ -230,7 +177,8 @@ def get_dns(d):
 			pass
 	else:
 		#domain's dns request doesn't resolve:
-		if convertDatetime(d.reg_date) > datetime.now()-timedelta(seconds=200):
+		if convertDatetime(d.reg_date) > \
+			datetime.now()-timedelta(seconds=200):
 			#reg_date = "now", with a margin of 200 secs:
 			#not registered (because reg_date is now):
 			d.priority = 'low'
@@ -249,26 +197,6 @@ def get_dns(d):
 		d.test_freq = '1'
 	elif d.priority=='low':
 		d.test_freq = '14'
-
-def check_web(d):
-	# CHECK WEB
-	try:
-		requests.get('http://' + dom)
-		d.web = True
-	except:
-		d.web = False
-	try:
-		# to ignore "InsecureRequestWarning: Unverified HTTPS request.":
-		requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
-		requests.get('https://' + dom, verify=False)
-		d.webs = True
-	except:
-		d.webs = False
-
-def check_subdomains(d):
-	# CHECK SUBDOMAINS
-	#TODO: append subdoms to main domain
-	pass
 
 def answer_to_list(answers):
 	# (from dnstwist)
@@ -306,10 +234,11 @@ if __name__ == '__main__':
 		retrieveDomainsData(args.custCode,args.technic,args.dictFile,
 			args.elastic,args.insertElastic,args.outputFile,args.verbose)
 	else:
+
 		# GET DNS with DomainThreads (just for piping-PoC)
 		for line in sys.stdin:
 			domain_str = '{'+line.split('{')[1]
-			#e.g.: domain_str="{'fuzzer':'Original*','domain-name':'nba.com'}"
+#e.g.: domain_str="{'fuzzer':'Original*','domain-name':'nba.com'}"
 			domain = json.loads(domain_str.replace( "'",'"'))
 			# json needs property name to be enclosed in double quotes
 
@@ -323,5 +252,6 @@ if __name__ == '__main__':
 				if d.ns!=[]:
 					print("REGISTERED!",d.domain)
 					nregs+=1
-				print(json.dumps({"domain":d.domain,"status":d.status,"ns":d.ns}))
+				print(json.dumps({"domain":d.domain,
+					"status":d.status,"ns":d.ns}))
 				print("[%i vars checked, %i regs]"%(len(results),nregs))
