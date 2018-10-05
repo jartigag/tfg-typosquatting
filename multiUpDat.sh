@@ -11,15 +11,15 @@
 # 30 2,10,18 * * * bash ~/multiUpDat.sh results >> ~/log-multiUpDat.txt
 
 echo "$(date) - running script.."
-arrFiles=(~/files/DAT/*)
+arrFiles=(DAT/*)
 for filename in ${arrFiles[@]}
 do
         name=$(basename $filename)
         cust=${name%_-_*} #cust=filename.split('_-_')[0]
-        /usr/bin/time -o ~/times/time-upDat-$cust.txt \
-                python3 ~/updateData.py $cust '*' $1 -v \
-                >> ~/logs/logs-upDat/log-$cust.log #&
+        /usr/bin/time -o times/time-upDat-$cust.txt \
+                python3 updateData.py $cust '*' $1 -v \
+                >> logs/logs-upDat/log-$cust.log
         echo "$(date) - $cust's data updated"
 done
-python3 ~/sendNotifs.py
+python3 sendNotifs.py
 echo "$(date) - script done."

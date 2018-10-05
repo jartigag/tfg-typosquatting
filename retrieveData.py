@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-#author: Javier Artiga Garijo (v0.8)
-#date: 24/09/2018
-#version: 0.8 ( priority criteria based on dns )
+#author: Javier Artiga Garijo (v0.9)
+#date: 03/10/2018
+#version: 0.9 (fix: each domain as a ES document)
 #given a dictionary of domains (from file, elasticsearch or piping it),
 #RETRIEVE DATA of DNS
 #for each domain and classify it as low/high priority + status info.
@@ -10,7 +10,7 @@
 #with all their collected info.
 #
 #recommended execution: /usr/bin/time -o time.txt python3 retrieveData.py
-# technic custCode [-d dictFile.json | -e GetINDEX]
+# custCode technic [-d dictFile.json | -e GetINDEX]
 # [-o outputFile.json | -i InsertINDEX] [-v] >> logFile.log
 
 import argparse
@@ -84,7 +84,7 @@ def convertDatetime(date):
 		return False
 
 def retrieveDomainsData(custCode,technic,dictFile,elasticGetIndex,
-	elasticInsertIndex,outputFile,verbose):
+	outputFile,elasticInsertIndex,verbose):
 	if outputFile:
 		outputF=open(outputFile,'w')
 		print("[",end="",file=outputF)
@@ -94,39 +94,39 @@ def retrieveDomainsData(custCode,technic,dictFile,elasticGetIndex,
 		data = getESDocs(elasticGetIndex,custCode,technic)
 		if verbose:
 			print(custCode,"loaded")
-	for e in data:
-		results = [] # for insertESBulk
-#e['domains'] contains all the variations of a combination (offDom+TLD)
-		for dom in e['domains']:
-			d = Domain()
-			d.domain = dom['domain-name']
-			d.generation = dom['fuzzer']
-			d.customer = e['customer']
-			start_time = time()
-			get_dns(d)
-			end_time = time()
-			d.resolve_time = "{:.2f}".format(end_time-start_time)
+	results = [] # for insertESBulk
+	for dom in data:
+		d = Domain()
+		d.domain = dom['domain-name']
+		d.generation = dom['generation']
+		d.customer = dom['customer']
+		start_time = time()
+		get_dns(d)
+		end_time = time()
+		d.resolve_time = "{:.2f}".format(end_time-start_time)
 
-			if verbose:
-				print("%s - [%i/%i]"%
-					(custCode,e['domains'].index(dom)+1,len(e['domains'])),
-					"[-]" if d.ip==[] else "[x]", d.domain,
-					"(%s secs)"%(d.resolve_time))
+		if verbose:
+			print("%s - [%i/%i]"%
+				(custCode,data.index(dom)+1,len(data)),
+				"[-]" if d.ip==[] else "[x]", d.domain,
+				"(%s secs)"%(d.resolve_time))
 
-			if outputFile:
-				# print results as a json to outputF:
-				if e['domains'].index(dom)!=len(e['domains'])-1:
-					#if this dom is not the last one:
-					print(json.dumps(d.__dict__, indent=2, sort_keys=True),
-						end=",\n",file=outputF)
-				else:
-					print(json.dumps(d.__dict__, indent=2, sort_keys=True),
-						end="\n",file=outputF)
-			elif elasticInsertIndex:
-				results.append(d.__dict__)
-		if elasticInsertIndex:
-			insertESBulk(results,elasticInsertIndex)
-	if outputFile:
+		if outputFile:
+			# print results as a json to outputF:
+			if data.index(dom)!=len(data)-1:
+				#if this dom is not the last one:
+				print(json.dumps(d.__dict__, indent=2, sort_keys=True),
+					end=",\n",file=outputF)
+			else:
+				print(json.dumps(d.__dict__, indent=2, sort_keys=True),
+					end="\n",file=outputF)
+		elif elasticInsertIndex:
+			results.append(d.__dict__)
+	if elasticInsertIndex:
+		print(len(results)) #DEBUGGING
+		insertESBulk(results,elasticInsertIndex)
+		print('data inserted in',elasticInsertIndex)
+	elif outputFile:
 		print("]",file=outputF)
 
 def get_dns(d):
@@ -232,7 +232,7 @@ if __name__ == '__main__':
 		if args.elastic:
 			es = Elasticsearch(['http://localhost:9200'])
 		retrieveDomainsData(args.custCode,args.technic,args.dictFile,
-			args.elastic,args.insertElastic,args.outputFile,args.verbose)
+			args.elastic,args.outputFile,args.insertElastic,args.verbose)
 	else:
 
 		# GET DNS with DomainThreads (just for piping-PoC)

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-#author: Javier Artiga Garijo (v0.7.1)
-#date: 31/08/2018
-#version: 0.7.1 ( getESDocs(index, customer='*', technic='*') )
+#author: Javier Artiga Garijo (v0.8)
+#date: 03/10/2018
+#version: 0.8 (fix: each domain as a ES document)
 #INSERT data from a file into ELASTICSEARCH
 #
 #usage: insertES.py dataFile.json elasticSearchIndex
@@ -86,7 +86,10 @@ def insertESBulk(documents,index):
 def getESDocs(index, customer='*', technic='*'):
 	# (from a @julgoor's chunk of code)
 	### Prepare the query
-	body = {"query": { "match": { "customer":  customer }}, "size": 500}
+	#body = {"query": { "match": { "customer":  customer }}, "size": 500}
+	body = {"query": {"bool": {"must": [ \
+		{ "match": { "customer":  customer }}, \
+		{ "match": { "generation": technic }} ] }}, "size": 500}
 	# Launch the initial query
 	results = es_search_scroll(index, body)
 	# Clean the results

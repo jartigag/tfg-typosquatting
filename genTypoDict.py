@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-#author: Javier Artiga Garijo (v0.5)
-#date: 17/08/2018
-#version: 0.5 (elastic with insertESBulk for each customer)
+#author: Javier Artiga Garijo (v0.6)
+#date: 03/10/2018
+#version: 0.6 (fix: each domain as a ES document)
 #GENerate a DICTionary of DOMAINS and its TYPOsquatting variations
 #from a list of Official Domains and a list of TLDs
 #
@@ -60,28 +60,30 @@ def genDict(tldsFile,domainsDir,outputDictFile,verbose,reallyVerbose,
 			fuzzed_doms = dfuzz.domains
 			nvars+=len(fuzzed_doms)
 
-			e = {} # element (type: dictionary) to append in result array
-			e['customer'] = cust_code
-			e['domains'] = fuzzed_doms
+			for d in fuzzed_doms:
+				e = {} # element (type: dictionary) to append in result array
+				e['domain-name'] = d['domain-name']
+				e['generation'] = d['fuzzer']
+				e['customer'] = cust_code
 
-			if piping:
-				for d in fuzzed_doms:
-					print(cust_code,d)
-			elif elasticIndexDom:
-				insertES(e,elasticIndexDom)
-			elif elasticIndexCust:
-				results.append(e) # for insertESBulk
-				if reallyVerbose:
-					print(fuzzed_doms[0]['domain-name'],end=",",flush=True)
-			elif outputDictFile:
-				# print results as a json to outputDictF:
-				#if this c is not the last one:
-				if combs.index(c)!=len(combs)-1: 
-					print(json.dumps(e,sort_keys=True),
-						end=",\n",file=outputDictF)
-				else:
-					print(json.dumps(e,sort_keys=True),
-						end="\n",file=outputDictF)
+				if piping:
+					for d in fuzzed_doms:
+						print(cust_code,d)
+				elif elasticIndexDom:
+					insertES(e,elasticIndexDom)
+				elif elasticIndexCust:
+					results.append(e) # for insertESBulk
+					if reallyVerbose:
+						print(fuzzed_doms[0]['domain-name'],end=",",flush=True)
+				elif outputDictFile:
+					# print results as a json to outputDictF:
+					#if this c is not the last one:
+					if combs.index(c)!=len(combs)-1:
+						print(json.dumps(e,sort_keys=True),
+							end=",\n",file=outputDictF)
+					else:
+						print(json.dumps(e,sort_keys=True),
+							end="\n",file=outputDictF)
 
 		if verbose:
 			print("\n%i - %s 	%i doms (%i combs, %i vars)" %
