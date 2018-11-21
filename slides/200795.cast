@@ -1,0 +1,266 @@
+{
+  "stdout": [
+    [
+      0.007874,
+      "\u001b]0;javi@debian: ~/g/trenca\u0007\u001b[01;32mjavi@debian\u001b[00m:\u001b[01;34m~/g/trenca\u001b[00m$ "
+    ],
+    [
+      0.45878,
+      "python trenca.py --help"
+    ],
+    [
+      0.407807,
+      "\r\n"
+    ],
+    [
+      0.148074,
+      "usage: trenca.py FILE [-cvf] [json/sqlite] [-n] NUMBER [-l] NUMBER\r\n\r\njust a script to collect twitter's TTs, v0.5 by @jartigag\r\n\r\npositional arguments:\r\n  file                  output file to store data\r\n\r\noptional arguments:\r\n  -h, --help            show this help message and exit\r\n  -c, --continuum       run continuously\r\n  -v, --verbose\r\n  -f {json,sqlite}, --format {json,sqlite}\r\n                        format to store data\r\n  -n NUMBER, --nTopTTs NUMBER\r\n                        limit to NUMBER top TTs on every location\r\n  -l NUMBER, --nFirstLocations NUMBER\r\n                        limit to NUMBER first locations (sorted as in\r\n                        woeids.json)\r\n"
+    ],
+    [
+      0.024408,
+      "\u001b]0;javi@debian: ~/g/trenca\u0007\u001b[01;32mjavi@debian\u001b[00m:\u001b[01;34m~/g/trenca\u001b[00m$ "
+    ],
+    [
+      2.675115,
+      "python trenca.py output.json -cv -n 10 -l 4"
+    ],
+    [
+      0.917863,
+      "\r\n"
+    ],
+    [
+      0.536659,
+      "[*] 2018-09-11 23:16:44 WORLDWIDE\r\n\t 01 - #خالد_البلطان_رييسا_للشباب (92247 tweets)\r\n\t 02 - #HaddadÉLula (53713 tweets)\r\n"
+    ],
+    [
+      2.9e-05,
+      "\t 03 - Asensio (50754 tweets)\r\n\t 04 - #GBBO (25243 tweets)\r\n\t 05 - #اسبانيا_كرواتيا (13824 tweets)\r\n\t 06 - #RMGalaxyDay (1426825 tweets)\r\n"
+    ],
+    [
+      2.3e-05,
+      "\t 07 - Ali Koç (20972 tweets)\r\n\t 08 - Carmen Montón (86495 tweets)\r\n"
+    ],
+    [
+      1.8e-05,
+      "\t 09 - Maicon (14009 tweets)\r\n"
+    ],
+    [
+      1.5e-05,
+      "\t 10 - María Luisa Carcedo \r\n"
+    ],
+    [
+      0.357579,
+      "[*] 2018-09-11 23:16:44 SPAIN\r\n\t 01 - Asensio (50754 tweets)\r\n\t 02 - Dimite Carmen Montón (15454 tweets)\r\n\t 03 - María Luisa Carcedo \r\n"
+    ],
+    [
+      2.4e-05,
+      "\t 04 - Rubiales \r\n\t 05 - Modric (26041 tweets)\r\n\t 06 - Hierro \r\n\t 07 - Wikipedia (59022 tweets)\r\n"
+    ],
+    [
+      1.6e-05,
+      "\t 08 - Ceballos \r\n\t 09 - #VenACenarTemprano \r\n"
+    ],
+    [
+      1.4e-05,
+      "\t 10 - Pedro Duque \r\n"
+    ],
+    [
+      0.410636,
+      "[*] 2018-09-11 23:16:44 MADRID\r\n\t 01 - España (306125 tweets)\r\n\t 02 - #OTConciertoBernabeu (84199 tweets)\r\n\t 03 - Madrid (135446 tweets)\r\n"
+    ],
+    [
+      3.3e-05,
+      "\t 04 - Dimite Carmen Montón (15704 tweets)\r\n\t 05 - María Luisa Carcedo \r\n\t 06 - Rubiales \r\n\t 07 - Modric (26384 tweets)\r\n\t 08 - #VenACenarTemprano \r\n"
+    ],
+    [
+      1.5e-05,
+      "\t 09 - Wikipedia (59326 tweets)\r\n"
+    ],
+    [
+      1.4e-05,
+      "\t 10 - Ceballos \r\n"
+    ],
+    [
+      0.373048,
+      "[*] 2018-09-11 23:16:44 BARCELONA\r\n\t 01 - Asensio (50754 tweets)\r\n"
+    ],
+    [
+      8.7e-05,
+      "\t 02 - Dimite Carmen Montón (15454 tweets)\r\n\t 03 - María Luisa Carcedo \r\n\t 04 - Rubiales \r\n"
+    ],
+    [
+      5.7e-05,
+      "\t 05 - Modric (26041 tweets)\r\n\t 06 - Hierro \r\n"
+    ],
+    [
+      5e-05,
+      "\t 07 - #VenACenarTemprano \r\n"
+    ],
+    [
+      4.8e-05,
+      "\t 08 - Wikipedia (59022 tweets)\r\n"
+    ],
+    [
+      4.5e-05,
+      "\t 09 - Ceballos \r\n"
+    ],
+    [
+      6.3e-05,
+      "\t 10 - Pedro Duque \r\n"
+    ],
+    [
+      2.389532,
+      "[*] 2018-09-11 23:16:47 WORLDWIDE\r\n\t 01 - #خالد_البلطان_رييسا_للشباب (92247 tweets)\r\n\t 02 - #HaddadÉLula (53713 tweets)\r\n"
+    ],
+    [
+      8.3e-05,
+      "\t 03 - Asensio (50754 tweets)\r\n\t 04 - #GBBO (25243 tweets)\r\n\t 05 - #اسبانيا_كرواتيا (13824 tweets)\r\n"
+    ],
+    [
+      3.1e-05,
+      "\t 06 - #RMGalaxyDay (1426825 tweets)\r\n\t 07 - Ali Koç (20972 tweets)\r\n\t 08 - Carmen Montón (86495 tweets)\r\n\t 09 - Maicon (14009 tweets)\r\n"
+    ],
+    [
+      2.4e-05,
+      "\t 10 - María Luisa Carcedo \r\n"
+    ],
+    [
+      0.347281,
+      "[*] 2018-09-11 23:16:47 SPAIN\r\n\t 01 - Asensio (50754 tweets)\r\n\t 02 - Dimite Carmen Montón (15454 tweets)\r\n\t 03 - María Luisa Carcedo \r\n"
+    ],
+    [
+      2.3e-05,
+      "\t 04 - Rubiales \r\n"
+    ],
+    [
+      0.000123,
+      "\t 05 - Modric (26041 tweets)\r\n\t 06 - Hierro \r\n\t 07 - Wikipedia (59022 tweets)\r\n\t 08 - Ceballos \r\n\t 09 - #VenACenarTemprano \r\n\t 10 - Pedro Duque \r\n"
+    ],
+    [
+      0.427242,
+      "[*] 2018-09-11 23:16:47 MADRID\r\n\t 01 - España (303438 tweets)\r\n\t 02 - #OTConciertoBernabeu (84168 tweets)\r\n\t 03 - Madrid (134473 tweets)\r\n"
+    ],
+    [
+      3.8e-05,
+      "\t 04 - Dimite Carmen Montón (15454 tweets)\r\n\t 05 - María Luisa Carcedo \r\n\t 06 - Rubiales \r\n\t 07 - Modric (26041 tweets)\r\n"
+    ],
+    [
+      2.6e-05,
+      "\t 08 - Wikipedia (59022 tweets)\r\n\t 09 - #VenACenarTemprano \r\n"
+    ],
+    [
+      3.4e-05,
+      "\t 10 - Ceballos \r\n"
+    ],
+    [
+      0.363102,
+      "[*] 2018-09-11 23:16:47 BARCELONA\r\n\t 01 - Asensio (50754 tweets)\r\n\t 02 - Dimite Carmen Montón (15454 tweets)\r\n"
+    ],
+    [
+      6.1e-05,
+      "\t 03 - María Luisa Carcedo \r\n\t 04 - Rubiales \r\n\t 05 - Modric (26041 tweets)\r\n\t 06 - Hierro \r\n"
+    ],
+    [
+      3.7e-05,
+      "\t 07 - #VenACenarTemprano \r\n\t 08 - Wikipedia (59022 tweets)\r\n"
+    ],
+    [
+      3.2e-05,
+      "\t 09 - Ceballos \r\n\t 10 - Pedro Duque \r\n"
+    ],
+    [
+      2.376744,
+      "[*] 2018-09-11 23:16:51 WORLDWIDE\r\n\t 01 - #خالد_البلطان_رييسا_للشباب (92247 tweets)\r\n\t 02 - #HaddadÉLula (53713 tweets)\r\n"
+    ],
+    [
+      3.6e-05,
+      "\t 03 - Asensio (50754 tweets)\r\n\t 04 - #GBBO (25243 tweets)\r\n\t 05 - #اسبانيا_كرواتيا (13824 tweets)\r\n\t 06 - #RMGalaxyDay (1426825 tweets)\r\n"
+    ],
+    [
+      2.3e-05,
+      "\t 07 - Ali Koç (20972 tweets)\r\n\t 08 - Carmen Montón (86495 tweets)\r\n"
+    ],
+    [
+      1.6e-05,
+      "\t 09 - Maicon (14009 tweets)\r\n"
+    ],
+    [
+      1.8e-05,
+      "\t 10 - María Luisa Carcedo \r\n"
+    ],
+    [
+      0.474958,
+      "[*] 2018-09-11 23:16:51 SPAIN\r\n\t 01 - Asensio (50754 tweets)\r\n\t 02 - Dimite Carmen Montón (15454 tweets)\r\n"
+    ],
+    [
+      3.5e-05,
+      "\t 03 - María Luisa Carcedo \r\n\t 04 - Rubiales \r\n\t 05 - Modric (26041 tweets)\r\n\t 06 - Hierro \r\n"
+    ],
+    [
+      2.7e-05,
+      "\t 07 - Wikipedia (59022 tweets)\r\n"
+    ],
+    [
+      1.8e-05,
+      "\t 08 - Ceballos \r\n"
+    ],
+    [
+      2e-05,
+      "\t 09 - #VenACenarTemprano \r\n"
+    ],
+    [
+      1.6e-05,
+      "\t 10 - Pedro Duque \r\n"
+    ],
+    [
+      0.373055,
+      "[*] 2018-09-11 23:16:51 MADRID\r\n\t 01 - España (306125 tweets)\r\n\t 02 - #OTConciertoBernabeu (84199 tweets)\r\n\t 03 - Madrid (135446 tweets)\r\n\t 04 - Dimite Carmen Montón (15704 tweets)\r\n"
+    ],
+    [
+      2.3e-05,
+      "\t 05 - María Luisa Carcedo \r\n\t 06 - Rubiales \r\n\t 07 - Modric (26384 tweets)\r\n\t 08 - #VenACenarTemprano \r\n\t 09 - Wikipedia (59326 tweets)\r\n\t 10 - Ceballos \r\n"
+    ],
+    [
+      1.411516,
+      "[*] 2018-09-11 23:16:51 BARCELONA\r\n\t 01 - Croacia (29339 tweets)\r\n\t 02 - Dimite Carmen Montón (15704 tweets)\r\n"
+    ],
+    [
+      4.1e-05,
+      "\t 03 - María Luisa Carcedo \r\n\t 04 - Rubiales \r\n\t 05 - Modric (26384 tweets)\r\n\t 06 - #VenACenarTemprano \r\n"
+    ],
+    [
+      2.4e-05,
+      "\t 07 - Hierro \r\n"
+    ],
+    [
+      3.9e-05,
+      "\t 08 - Wikipedia (59326 tweets)\r\n\t 09 - Ceballos \r\n\t 10 - Pedro Duque \r\n"
+    ],
+    [
+      1.256158,
+      "^C"
+    ],
+    [
+      7.1e-05,
+      "\r\nexiting.. "
+    ],
+    [
+      0.000198,
+      "bye!\r\n"
+    ],
+    [
+      0.035061,
+      "\u001b]0;javi@debian: ~/g/trenca\u0007\u001b[01;32mjavi@debian\u001b[00m:\u001b[01;34m~/g/trenca\u001b[00m$ "
+    ]
+  ],
+  "title": null,
+  "version": 1,
+  "height": 51,
+  "duration": 15.776076,
+  "env": {
+    "TERM": "xterm-256color",
+    "SHELL": "/bin/bash"
+  },
+  "width": 115,
+  "command": null
+}

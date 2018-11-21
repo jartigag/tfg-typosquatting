@@ -1,0 +1,33 @@
+
+img {
+	border: none !important; 
+	box-shadow: 0 0 0 0 !important;
+}
+
+.reveal .step {
+	text-indent: -4.2em;
+	margin-left: 4.2em;
+	text-align: justify;
+}
+
+p.etapa {
+	text-align: left;
+	font-style: italic;
+}
+
+.desarrollo {
+	color: green;
+}
+
+.pruebas {
+	color: orange;
+}
+
+.analisis {
+	color: purple;
+}
+
+.reveal ul {
+    font-size: 0.6em;
+    line-height: 1.3;
+}

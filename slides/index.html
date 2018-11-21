@@ -1,0 +1,297 @@
+
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>Typosquatting</title>
+
+		<link rel="stylesheet" type="text/css" href="asciinema-player.css" />
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/white.css">
+		<link rel="stylesheet" href="css/custom.css">
+
+		<style type="text/css">
+		body > div > div.slides > section.stack.present > section.present > ul > li{
+			padding: 1.2em 0;
+		}
+  		</style>
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section>
+					<h2 class="main-title">Detección de dominios <i>typosquatting</i></h2>
+					<h8>Trabajo Fin de Grado</h8>
+					<p><b>Javier Artiga Garijo</b></p>
+					<img src="icono_peq.png">
+				</section>
+
+				<section>
+					<!--h2>Introducción</h2-->
+					<section>
+						<h3>Objetivo</h3>
+						<p style="text-align: center; padding-left: 3em">Diseño y desarrollo de un sistema de monitorización de dominios <i>typosquatting</i>,<br>
+						basado en recoger información con peticiones DNS, Whois y HTTP<br>
+						y almacenarla en un servidor de búsqueda Elasticsearch,<br>
+						con el objetivo de analizar la viabilidad técnica de esta solución para ElevenPaths</p>
+					</section>
+
+					<section>
+						<h3>Contexto</h3>
+						<img src="diagramas/casos_cybersquatting.png" style="margin-top: -0.2em">
+						<p style="margin-top: -1em;"><b>Casos de <i>cybersquatting</i> (2000-2015)</b><br>
+						Fuente: <a href="https://cybercamp.es/sites/default/files/contenidos/material/cybercamp2016-cybersquatting_dot_es-wiktor_nykiel_e_ivan_portillo.pdf">CyberCamp 2016: CyberSquatting dot es</a></p>
+					</section>
+
+					<section>
+						<h3>Antecedentes</h3>
+						<img src="diagramas/arch-typosq-report.png" style="margin-top: -0.5em">
+						<p style="margin-top: -1em;">Arquitectura de la solución propuesta en <i>Typosquatting Report</i></p>
+					</section>
+				</section>
+
+				<section>
+					<section>
+                                        	<h2>Fase 1</h2>
+                                        	<p>"Verificar la existencia de los dominios de los clientes con diferentes TLDs"</p>
+                                	</section>
+				</section>
+
+				<section>
+					<h3>Desarrollo: Fase 1</h3>
+					<section>
+						<a href="#soluciones1"><img src="diagramas/0 - fase1.png"></a>
+					</section>
+
+					<!--section>
+						<p class="etapa desarrollo">Desarrollo</p>
+						<img src="diagramas/1a - offDoms.png"">
+						<p class="step">Paso 1A: <u><b>Eliminar dominios inválidos y duplicados</b></u> de los ficheros .xls proporcionados.</p>
+					</section>
+
+					<section>
+						<p class="etapa desarrollo">Desarrollo</p>
+						<img src="diagramas/1b - offDoms.png" >
+						<p class="step">Paso 1B: <u><b>Extraer los ccTLDs</b></u> que aparecen en los dominios oficiales.</p>
+					</section>
+
+					<section>
+						<p class="etapa pruebas">Pruebas</p>
+						<img src="diagramas/1 - pruebas.png">
+						<ul style="margin-left: 100px">
+							<li>Tras varios filtrados manuales, se obtuvieron 2733 dominios eliminando duplicados e inválidos.</li>
+							<li>Se extrajeron 37 TLDs de códigos de países (ccTLDs) usados en los dominios oficiales.</li>
+						</ul>
+					</section>
+
+					<section>
+						<p class="etapa desarrollo">Desarrollo</p>
+						<img src="diagramas/2 - genDict.png">
+						<p style="margin-right: 100px" class="step">Paso 2: <u><b>Generar diccionario</b></u> (JSON) con todas las combinaciones de dominios oficiales + TLDs.</p>
+					</section>
+
+					<section>
+						<p class="etapa pruebas">Pruebas</p>
+						<img src="diagramas/2 - pruebas.png">
+						<p style="text-align: justify;">Se generaron 4 diccionarios, progresivamente de mayor tamaño.</p>
+					</section>
+
+					<section>
+						<p class="etapa desarrollo">Desarrollo</p>
+						<img src="diagramas/3 - retrieveData.png" style="position: absolute;">
+						<img class="fragment" data-fragment-index="1" src="diagramas/3bis-bg - retrieveData.png" style="position: absolute; z-index: -1">
+						<img class="fragment" data-fragment-index="2" src="diagramas/3 - pruebas.png" style="position: relative; z-index: 1">
+						<p class="step" style="margin-top: -0.8em; margin-bottom: 0">Paso 3: <u><b>Obtener información</b></u> de cada dominio: Whois, DNS (registros A, MX), IP, peticiones Web (HTTP, HTTPS).</p>
+						<p style="display: inline;">En consecuencia, <u><b>asignar campos</b></u>:</p>
+						<ul style="float: right;"><li>prioridad</li><li>frecuencia de comprobación</li><li>estado</li></ul>
+						<p style="margin-top: 2em;" class="fragment" data-fragment-index="1"><b>Ejecutar continuamente para medir rendimiento y descubrir bloqueos</b>.</p>
+					</section-->
+
+					<section id="soluciones1">
+						<p class="etapa analisis">Análisis</p>
+						<img src="diagramas/3 - resultados - stats-retrDat.png" style="position: relative; z-index: 1">
+						<p style="margin-top: -0.8em; text-align: justify;"><b><i>Profiling</i></b>: Análisis de Rendimiento a partir de los logs de retrieveData.py<p>
+						<p>&#8594; El <b>2%</b> de las peticiones Whois cuestan <br><b>más tiempo que el 98%</b> restante.</p>
+					</section>
+
+					<section>
+						<p class="etapa"><span class="desarrollo">Desarrollo </span>y<span class="pruebas"> Pruebas</span></p>
+						<img src="diagramas/3 - sol1.png" style="position: absolute;">
+						<img class="fragment" data-fragment-index="2" src="diagramas/3 - sol1 pruebas.png" style="position: relative; z-index: 1">
+						<p class="step"><b>Solución 1</b>: generar 2 diccionarios, separando los dominios por el tiempo que tardan en resolver su petición Whois (criterio: >10s = lento).</p>
+					</section>
+
+					<section>
+						<p class="etapa"><span class="desarrollo">Desarrollo </span>y<span class="pruebas"> Pruebas</span></p>
+						<img src="diagramas/3 - sol2.png" style="position: absolute;">
+						<img class="fragment" data-fragment-index="2" src="diagramas/3 - sol2 pruebas.png" style="position: relative; z-index: 1">
+						<p class="step"><b>Solución 2</b>: hacer peticiones con un Pool de X procesos simultáneos (se eligió X=30).</p>
+					</section>
+
+					<section>
+						<img src="diagramas/0 - fase1.png">
+					</section>
+				</section>
+
+				<section>
+					<h2>Fase 2</h2>
+					<p>"Incluir las variaciones del nombre de cada dominio"</p>
+				</section>
+
+				<section>
+					<h3>Desarrollo: Fase 2</h3>
+					<section>
+						<img src="diagramas/0 - fase2.png">
+					</section>
+
+					<section>
+						<p class="etapa pruebas">Pruebas</p>
+						<img src="diagramas/0fase2 - prueba typoHits.png" style="position: absolute;">
+						<img class="fragment" data-fragment-index="2" src="diagramas/0fase2 - tiempo typoHits.png" style="position: relative; z-index: -1">
+						<p style="text-align: justify;">Tras analizar la herramienta <b>dnstwist</b>, se lanzó una prueba con todas las variaciones de las 81k combinaciones actuales (offDoms+TLDs) mediante 300 hilos, para comprobar cuánto costaba procesar tal magnitud de dominios.</p>
+					</section>
+
+					<section>
+						<p class="etapa analisis">Análisis</p>
+						<img src="diagramas/0fase2 - resultados typoHits.png">
+						<p style="margin-top: -0.8em; text-align: justify;"><b><i>Profiling</i></b>: Análisis de Rendimiento a partir del output de typoHits.sh<p>
+						<p style="margin-top: 1em; text-align: justify;">&#8594; Se generan <b>36M</b> de variaciones, de las cuales están registradas un <b>0,707% (562k)</b>.<br>De estos dominios registrados, el 98% tienen IP asociada y el 45%, servidor MX.</p>
+					</section>
+
+					<section>
+						<p style="text-align: justify;">Próximos objetivos: <b>hallar y optimizar el tiempo</b> que cuesta</p>
+						<ul>
+							<li>generar el diccionario completo con variaciones (<code>genTypoDict.py</code>)</li>
+							<li>recoger toda la información de DNS (<code>retrieveData.py</code>)</li>
+						</ul>
+						<p class="fragment" data-fragment-index="2">Obstáculos: problemas de memoria por el tamaño de los ficheros (<code><u>MemErrors</u></code>).</p>
+						<p class="fragment" data-fragment-index="3" style="margin-top: 1em; text-align: justify;">Soluciones:<br><br>1) --piping<br><br>2) Dividir diccionarios<br><br>3) --elastic</p>
+					</section>
+
+					<!--section>
+						<p class="etapa"><span class="desarrollo">Desarrollo </span>y<span class="pruebas"> Pruebas</span></p>
+						<img src="diagramas/2 - genTypoDict.png" >
+						<p class="step">Paso 2: <u><b>Generar diccionario</b></u> (JSON) incluyendo las <b>variaciones</b> de las combs. domOfic+TLDs, generadas mediante las <b>técnicas typosquatting de dnstwist</b>.</p>
+						<img class="fragment" data-fragment-index="2" src="diagramas/2 - tiempo genTypoDict.png">
+					</section>
+
+					<section>
+						<p class="etapa desarrollo">Desarrollo</p>
+						<img src="diagramas/2a - piping - genTypoDict.png">
+						<p class="step"><u><b>--piping</b></u>: Cada variación typosquatting se pasa a retrieveData.py según se genera (a través de un pipeline de UNIX).</p>
+						<p class="fragment">&#10006; No era lo suficientemente rápido.</p>
+					</section>
+
+					<section>
+						<p class="etapa desarrollo">Desarrollo</p>
+						<img src="diagramas/2b - splitTypoDicts.png">
+						<p class="step">Paso 2B: <u><b>Dividir el diccionario</b></u> typoDict.json completo (3,2GB) en 50 diccionarios (por clientes).</p>
+					</section>
+
+					<section>
+						<p class="etapa pruebas">Pruebas</p>
+						<img src="diagramas/3 - retrDat-multiproc json.png">
+						<p class="step" style="margin-top: -0.8em; margin-bottom: 0">Paso 3: <u><b>Obtener información</b></u> de cada dominio.</p>
+						<p style="text-align: justify;">Cargando los ficheros JSON divididos todavía da algunos <code style="color: gold;"><u>MemErrors</u></code>.
+					</section>
+
+					<section>
+						<p class="etapa desarrollo">Desarrollo</p>
+						<img src="diagramas/2a - elastic - genTypoDict.png">
+						<p class="step"><u><b>--elastic</b></u>: El resultado se almacena directamente en ElasticSearch, evitando problemas de tamaño de ficheros.</p>
+					</section>
+
+					<section>
+						<p class="etapa pruebas">Pruebas</p>
+						<img src="diagramas/3 - retrDat-multiproc es.png">
+						<p class="step" style="margin-top: -0.8em; margin-bottom: 0">Paso 3: <u><b>Obtener información</b></u> de cada dominio. Ahora retrieveData.py recibe como argumento el <b>código del cliente</b> que tiene que consultar en el dict_index de ES y analizar.</p>
+						<p style="text-align: justify;">Con <code>-e dict_index -i info_index</code> todos los datos se cargan y vuelcan <b>en Elasticsearch</b>.
+					</section-->
+
+					<section>
+						<img src="diagramas/0 - fase2.png">
+					</section>
+				</section>
+				<section>
+					<h2>Fase Extra</h2>
+					<p>"Monitorización de marcas en Redes Sociales"</p>
+				</section>
+
+				<section>
+					<h3>Fase Extra</h3>
+					<section>
+						<asciinema-player src="200795.cast" cols="115" rows="25"></asciinema-player>
+						<p><a href="https://github.com/jartigag/trenca-trending-topic">https://github.com/jartigag/trenca-trending-topic</a></p>
+					</section>
+				</section>
+
+				<section>
+					<section style="margin-top: 0em">
+						<h3>Conclusiones</h3>
+						<ul style="padding-top: 1em">
+							<li><b>Escalabilidad:</b> Soporta 50 clientes con unos 55 dominios cada uno.</li>
+							<li><b>Rendimiento:</b> Mejorado de 1,1 s/dom. (con 55k dominios)<br>a 0,3 s/dom. en Fase1 (81k) y <0,24 s/dom. en Fase2 (36M).</li>
+							<li><b>Técnicas más frecuentes:</b></li>
+								<ol>
+								<li>Inserción (23%)</li>
+                                                                <li>Bitsquatting (16%)</li>
+                                                                <li>Sustitución y Homóglifos (14%)</li>
+								</ol>
+						</ul>
+						<p style="text-align: justify; padding-top: 2em; padding-left: 3em">&#8594; <b>Completamente viable</b>. Incluso pueden mejorarse algunos aspectos:</p>
+					</section>
+					<section style="margin-top: -1em">
+						<h3>Líneas futuras</h3>
+						<ul style="padding-top: 2em">
+							<li><b>DNS Round Robin</b></li>
+							<li><b>Fechas en Elasticsearch</b></li>
+							<li><b>Más paralelización</b></li>
+						</ul>
+						<p style="text-align: justify; padding-top: 3em; padding-left: 3em"></p>
+					</section>
+				</section>
+
+				<section>
+					<img src="dudas.jpg" alt="">
+				</section>
+
+			</div>
+		</div>
+
+		<script src="asciinema-player.js"></script>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+			// More info about config & dependencies:
+			// - https://github.com/hakimel/reveal.js#configuration
+			// - https://github.com/hakimel/reveal.js#dependencies
+			Reveal.initialize({
+				dependencies: [
+					{ src: 'plugin/zoom-js/zoom.js', async: true }
+					//{ src: 'plugin/markdown/marked.js' },
+					//{ src: 'plugin/markdown/markdown.js' },
+					//{ src: 'plugin/notes/notes.js', async: true },
+					//{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+				]
+			});
+		</script>
+	</body>
+</html>
+
